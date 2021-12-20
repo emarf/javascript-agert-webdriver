@@ -31,7 +31,7 @@ class HttpClient {
       headers: {}
     });
   }
-
+  //!TODO check
   async callPost(url, body, headers, log = false, forceDisableLog = false) {
     const config = {
       headers: headers
@@ -39,45 +39,11 @@ class HttpClient {
 
     try {
       const postPromise = await this.axiosClient.post(url, body, config);
-      console.log(`POST relative url: ${url}`);
-      if (log) {
-        console.log(`request body: ${getObjectAsString(body)}`);
-        console.log(`response body: ${getObjectAsString(postPromise.data)}`);
-      }
-      console.log(`RESPONSE status: ${postPromise.status}`);
-      if (this.debugLogging) {
-        logToFile(`POST relative url: ${url}`);
-        if (!forceDisableLog) {
-          logToFile(`request body: ${getObjectAsString(body)}`);;
-          logToFile(`RESPONSE status: ${postPromise.status}`);
-        }
+      this._positiveLog(postPromise, url, body, log, forceDisableLog);
 
-        if (!forceDisableLog) {
-          logToFile(`response body: ${getObjectAsString(postPromise.data)}`);
-        }
-      }
       return postPromise;
     } catch (error) {
-      console.log(`POST relative url: ${url}`)
-      if (log) {
-        console.log(`request body: ${getObjectAsString(body)}`)
-      }
-      if (error.response) {
-        console.error(`RESPONSE ERROR: ${error.response.status} ${error.response.statusText}`)
-      } else if (error.data) {
-        console.error((error.data) ? error.data : error.response.data)
-      } else {
-        console.error(error)
-      }
-      if (this.debugLogging) {
-        logToFile(`POST relative url: ${url}`)
-        if (!forceDisableLog) {
-          logToFile(`request body: ${getObjectAsString(body)}`)
-        }
-        if (error.response) {
-          logToFile(`RESPONSE ERROR: ${error.response.status} ${error.response.statusText}`)
-        }
-      }
+      this._errorLog(error, forceDisableLog)
     }
   }
 
@@ -88,43 +54,47 @@ class HttpClient {
 
     try {
       const putPromise = await this.axiosClient.put(url, body, config);
-      console.log(`PUT relative URL: ${url}`);
-      if (log) {
-        console.log(`request body: ${getObjectAsString(body)}`);
-        console.log(`response body: ${getObjectAsString(putPromise.data)}`);
-      }
-      console.log(`RESPONSE status: ${putPromise.status}`);
-      if (this.debugLogging) {
-        logToFile(`PUT relative url: ${url}`)
-        if (!forceDisableLog) {
-          logToFile(`request body: ${getObjectAsString(body)}`);
-          logToFile(`RESPONSE status: ${putPromise.status}`);
-        }
-
-        if (!forceDisableLog) {
-          logToFile(`response body: ${getObjectAsString(putPromise.data)}`);
-        }
-      }
+      this._positiveLog(putPromise, url, body, log, forceDisableLog);
     } catch (error) {
-      console.log(`PUT relative url: ${url}`)
-      if (log) {
-        console.log(`request body: ${getObjectAsString(body)}`)
+      this._positiveLog(error, forceDisableLog);
+    }
+  }
+
+  _positiveLog(promise, url, body, log, forceDisableLog) {
+    console.log(`POST relative url: ${url}`);
+    if (log) {
+      console.log(`request body: ${getObjectAsString(body)}`);
+      console.log(`response body: ${getObjectAsString(promise.data)}`);
+    }
+    console.log(`RESPONSE status: ${promise.status}`);
+    if (this.debugLogging) {
+      logToFile(`POST relative url: ${url}`);
+      if (!forceDisableLog) {
+        logToFile(`request body: ${getObjectAsString(body)}`);;
+        logToFile(`RESPONSE status: ${promise.status}`);
+      }
+
+      if (!forceDisableLog) {
+        logToFile(`response body: ${getObjectAsString(promise.data)}`);
+      }
+    }
+  }
+
+  _errorLog(error, forceDisableLog) {
+    if (error.response) {
+      console.error(`RESPONSE ERROR: ${error.response.status} ${error.response.statusText}`)
+    } else if (error.data) {
+      console.error((error.data) ? error.data : error.response.data)
+    } else {
+      console.error(error)
+    }
+    if (this.debugLogging) {
+      logToFile(`POST relative url: ${url}`)
+      if (!forceDisableLog) {
+        logToFile(`request body: ${getObjectAsString(body)}`)
       }
       if (error.response) {
-        console.error(`RESPONSE ERROR: ${error.response.status} ${error.response.statusText}`)
-      } else if (error.data) {
-        console.error((error.data) ? error.data : error.response.data)
-      } else {
-        console.error(error)
-      }
-      if (this.debugLogging) {
-        logToFile(`PUT relative url: ${url}`)
-        if (!forceDisableLog) {
-          logToFile(`request body: ${getObjectAsString(body)}`)
-        }
-        if (error.response) {
-          logToFile(`RESPONSE ERROR: ${error.response.status} ${error.response.statusText}`)
-        }
+        logToFile(`RESPONSE ERROR: ${error.response.status} ${error.response.statusText}`)
       }
     }
   }

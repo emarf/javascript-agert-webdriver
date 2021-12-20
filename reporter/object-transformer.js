@@ -1,14 +1,11 @@
 
-const parseSuiteStartObject = (suite, testFileName) => ({
+const parseSuiteStartObject = (suite) => ({
   id: suite.id,
   type: 'suite',
   title: suite.title.slice(0, 255).toString(),
   startTime: new Date().valueOf(),
   description: suite.description,
   attributes: [],
-  capabilities: {
-
-  },
   codeRef: suite.specs[0],
   parentId: !suite.root ? suite.parent.id : undefined
 });

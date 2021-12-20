@@ -1,5 +1,4 @@
 import CustomReporter from './reporter/index'
-const video = require('wdio-video-reporter');
 
 exports.config = {
   //
@@ -131,7 +130,7 @@ exports.config = {
   reporters: [
     [CustomReporter, {
       "reportingServerHostname": "https://webdriveragent.zebrunner.dev",
-      "reportingServerAccessToken": "vg77tO4bvuI6Ygavj2dXQ2rocwlg6ZGyGEqVgRaREwv2uVr0pk",
+      "reportingServerAccessToken": "gB0kVh8yfSn6TYxFeAvvCMlfbZ72RIVNCRSU59JAvMyQzmMUke",
       "reportingProjectKey": "DEF",
       "reportingRunEnvironment": "STAGE",
       "reportingRunBuild": "1.0-alpha",
@@ -141,11 +140,6 @@ exports.config = {
       "reportingSlackChannels": "",
       "reportingEmailRecipients": ""
     }],
-    // [video, {
-    //   saveAllVideos: false,       // If true, also saves videos for successful test cases
-    //   videoSlowdownMultiplier: 3, // Higher to get slower videos, lower for faster videos [Value 1-100]
-    //   outputDir: './reports/video/',
-    // }],
   ],
 
 

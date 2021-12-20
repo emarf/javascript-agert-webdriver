@@ -68,7 +68,6 @@ module.exports = {
   getFailedScreenshot,
   getFilesizeInBytes,
   writeJsonToFile,
-  sleep,
   logToFile,
   parseDate,
 }

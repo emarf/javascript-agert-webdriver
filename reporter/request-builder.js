@@ -66,7 +66,6 @@ const getTestRunStart = (suite, reporterConfig) => {
   if (configResolver.getReportingCiRunId()) {
     testRunStartBody.uuid = configResolver.getReportingCiRunId()
   }
-
   if (configResolver.getSlackChannels()) {
     testRunStartBody.notificationTargets.push({ 'type': 'SLACK_CHANNELS', 'value': configResolver.getSlackChannels() })
   }
