@@ -1,4 +1,4 @@
-class ConfigResolver {
+export default class ConfigResolver {
 
   constructor(reporterConfig) {
     this.reporterConfig = reporterConfig
@@ -10,7 +10,6 @@ class ConfigResolver {
     } else if (this.reporterConfig.reporterOptions[configVarName]) {
       return this.reporterConfig.reporterOptions[configVarName]
     } else {
-      // just log for now
       if (!optional) {
         console.log(`parameter ${configVarName} was not set`)
       }
@@ -53,13 +52,4 @@ class ConfigResolver {
   getEmailRecipients() {
     return this.getConfigVar('REPORTING_EMAIL_RECIPIENTS', 'reportingEmailRecipients', true)
   }
-
-  getDebugLogging() {
-    return this.getConfigVar('REPORTING_DEBUG_LOGGING', 'reportingDebugLogging', true)
-  }
-
 }
-
-module.exports = {
-  ConfigResolver
-};

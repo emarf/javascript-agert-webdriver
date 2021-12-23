@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-const { ConfigResolver } = require("./config-resolver");
+import ConfigResolver from './config-resolver';
 
 const urls = {
   URL_REFRESH: '/api/iam/v1/auth/refresh',
@@ -76,41 +76,42 @@ const getTestRunStart = (suite, reporterConfig) => {
   return testRunStartBody;
 };
 
-const getTestRunEnd = () => {
+const getTestRunEnd = (test) => {
   return {
-    'endedAt': new Date(),
+    'endedAt': test.end,
   };
 };
 
-const getTestStart = (test) => {
-  var testStartBody = {
+const getTestStart = (test, additionOptions) => {
+  let testStartBody = {
     'name': test.title,
     'startedAt': test.start,
     'className': test.fullTitle,
     'methodName': test.title,
     'labels': []
   };
-  if (test._testConfig) {
-    if (test._testConfig.owner) {
-      console.debug(`Test owner ${test._testConfig.owner} was set for the test "${test.title}"`)
-      testStartBody.maintainer = test._testConfig.owner
+
+  if (additionOptions) {
+    if (additionOptions.owner) {
+      console.debug(`Test owner ${additionOptions.owner} was set for the test "${test.title}"`);
+      testStartBody.maintainer = additionOptions.owner;
     }
-    if (test._testConfig.testrailTestCaseId) {
-      if (test._testConfig.testrailTestCaseId instanceof Array) {
-        test._testConfig.testrailTestCaseId.forEach(caseId => {
-          testStartBody.labels.push({ 'key': testrailLabels.L_CASE_ID, 'value': caseId })
-        });
+    if (additionOptions.testrailTestCaseId) {
+      if (Array.isArray(additionOptions.testrailTestCaseId)) {
+        additionOptions.testrailTestCaseId.forEach((caseId) => {
+          testStartBody.labels.push({ 'key': testrailLabels.L_CASE_ID, 'value': caseId });
+        })
       } else {
-        testStartBody.labels.push({ 'key': testrailLabels.L_CASE_ID, 'value': test._testConfig.testrailTestCaseId })
+        testStartBody.labels.push({ 'key': testrailLabels.L_CASE_ID, 'value': additionOptions.testrailTestCaseId })
       }
     }
-    if (test._testConfig.xrayTestKey) {
-      if (test._testConfig.xrayTestKey instanceof Array) {
-        test._testConfig.xrayTestKey.forEach(caseId => {
+    if (additionOptions.xrayTestKey) {
+      if (additionOptions.xrayTestKey instanceof Array) {
+        additionOptions.xrayTestKey.forEach(caseId => {
           testStartBody.labels.push({ 'key': xrayLabels.L_TEST_KEY, 'value': caseId })
         });
       } else {
-        testStartBody.labels.push({ 'key': xrayLabels.L_TEST_KEY, 'value': test._testConfig.xrayTestKey })
+        testStartBody.labels.push({ 'key': xrayLabels.L_TEST_KEY, 'value': additionOptions.xrayTestKey })
       }
     }
   }

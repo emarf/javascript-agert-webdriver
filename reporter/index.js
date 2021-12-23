@@ -1,9 +1,10 @@
 import WDIOReporter from '@wdio/reporter'
 import ZebrunnerApiClient from './zebr-api-client';
-import { getTestCapabilities } from './object-transformer';
-import { parseDate } from './utils';
+import { parseDate,getBrowserCapabilities } from './utils';
+const path = require('path');
+const fs = require('fs')
 
-export default class CustomReporter extends WDIOReporter {
+export default class ZebrunnerReporter extends WDIOReporter {
   constructor(reporterConfig) {
     super(reporterConfig);
     this.reporterConfig = { reporterOptions: this.options };
@@ -13,7 +14,13 @@ export default class CustomReporter extends WDIOReporter {
     this.response;
     this.testLogs = [];
     this.logDate;
-    this.isRetry;
+    this.testId;
+    this.additionOptions = {
+      owner: '',
+      xrayTestKey: '',
+      testrailTestCaseId: ''
+    };
+    this.promiseFinish = [];
   }
 
   get isSynchronised() {
@@ -25,82 +32,97 @@ export default class CustomReporter extends WDIOReporter {
   }
 
   onRunnerStart(runStats) {
-    console.log('onRunnerStart')
-    this.browserCapabilities = getTestCapabilities(runStats);
+    console.log('onRunnerStart');
+    this.browserCapabilities = getBrowserCapabilities(runStats);
   }
+
   onSuiteStart(suiteStats) {
     console.log('onSuiteStart');
-    //!TODO all tests in one run(try to create uuid when start)
     this.response = this.zebrunnerApiClient.registerTestRunStart(suiteStats);
+    return this.response;
   }
+
   onTestStart(testStats) {
     console.log('onTestStart');
     this.createLog(testStats, 'start');
     this.response.then(() => {
       try {
-        this.zebrunnerApiClient.startTest(testStats);
-        this.zebrunnerApiClient.startTestSession(testStats, this.browserCapabilities);
-        this.zebrunnerApiClient.sendRunLabels();
+        Promise.all([
+          this.zebrunnerApiClient.startTest(testStats, this.additionOptions),
+          this.zebrunnerApiClient.startTestSession(testStats, this.browserCapabilities),
+        ]).then((res) => {
+          this.testId = res[0];
+        });
       } catch (e) {
-        console.log(e)
+        console.log(e);
       }
-    })
-  }
+    });
+  };
+
   onTestPass(testStats) {
     console.log('onTestPass');
-    this.createLog(testStats, 'end')
-    this.zebrunnerApiClient.finishTestSession(testStats);
-    this.zebrunnerApiClient.finishTest(testStats);
-  }
+    this.createLog(testStats, 'end');
+    this.promiseFinish.push(this.addTestIdForTestLogs());
+    this.promiseFinish.push(this.zebrunnerApiClient.finishTestSession(testStats));
+    this.promiseFinish.push(this.zebrunnerApiClient.finishTest(testStats));
+    this.owner = null;
+  };
 
   onTestFail(testStats) {
-    console.log('onTestFail')
+    console.log('onTestFail');
+    this.saveAndSendFailedScreenshot(testStats)
     this.createLog(testStats, 'fail');
     this.createLog(testStats, 'end');
-    this.zebrunnerApiClient.finishTestSession(testStats);
-    this.zebrunnerApiClient.finishTest(testStats);
-  }
+    this.promiseFinish.push(this.addTestIdForTestLogs());
+    this.promiseFinish.push(this.zebrunnerApiClient.finishTestSession(testStats));
+    this.promiseFinish.push(this.zebrunnerApiClient.finishTest(testStats));
+    this.owner = null;
+  };
 
   async onRunnerEnd(runStats) {
     console.log('onRunnerEnd');
     try {
-      let isReadyToFinish = false;
-      await this.zebrunnerApiClient.sendLogs(runStats, this.testLogs)
-      const response = await this.zebrunnerApiClient.searchTests();
-      response.data.results.forEach((el) => {
-        if (el.status === 'IN_PROGRESS') {
-          isReadyToFinish = true;
+      await Promise.all(this.promiseFinish).then(async () => {
+        let isReadyToFinish = true;
+        this.zebrunnerApiClient.sendLogs(runStats, this.testLogs);
+        this.zebrunnerApiClient.sendRunLabels();
+        const response = await this.zebrunnerApiClient.searchTests();
+        response.data.results.forEach((el) => {
+          if (el.status === 'IN_PROGRESS') {
+            isReadyToFinish = false;
+          };
+        });
+
+        if (isReadyToFinish) {
+          await this.zebrunnerApiClient.registerTestRunFinish(runStats);
+        } else {
+          return new Promise(resolve => { resolve() });
         }
       })
-
-      if (!isReadyToFinish) {
-        await this.zebrunnerApiClient.registerTestRunFinish();
-      }
     } catch (e) {
       console.log(e);
     } finally {
-      this.isSynchronised = true;
+      this.isSynchronised = true
     }
-
-  }
+  };
 
   onAfterCommand(command) {
     const methods = ['POST', "GET"];
     try {
+      this.setAdditionOptions(command);
+
       if (this.isRetry !== command.endpoint && methods.includes(command.method)) {
         const hasScreenshot = /screenshot$/.test(command.endpoint) && !!command.result.value;
-
         if (hasScreenshot) {
-          this.zebrunnerApiClient.sendScreenshot(command, command.result.value, this.logDate);
+          this.zebrunnerApiClient.sendScreenshot(this.testId, command, command.result.value, Date.now());
           return;
         }
-
-        this.createLog(command, 'log');
-        browser.takeScreenshot()
+        const logInfo = command.body.url || command.body.text || command.body.value || command.result.value;
+        this.createLog(logInfo, 'log');
       }
-      this.isRetry = command.endpoint
+      this.isRetry = command.endpoint;
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
   }
 
@@ -114,40 +136,63 @@ export default class CustomReporter extends WDIOReporter {
           level: 'INFO',
           message: `TEST ${testStats.fullTitle} STARTED at ${parseDate(testStats.start)}`,
           timestamp: `${testStats.start.getTime()}`,
-        }
+        };
         break;
-      }
+      };
       case 'end': {
         testLog = {
           level: 'INFO',
           message: `TEST ${testStats.fullTitle} ${testStats.state.toUpperCase()} at ${parseDate(testStats.end)}`,
           timestamp: `${testStats.end.getTime() + 1}`,
-        }
+        };
         break;
-      }
+      };
       case 'fail': {
         testLog = {
           level: 'ERROR',
           message: `Error ${testStats.errors[0].message} at ${parseDate(testStats.end)}`,
           timestamp: `${testStats.end.getTime()}`,
-        }
-        break
-      }
+        };
+        break;
+      };
       default: {
         testLog = {
-          level: 'TRACE',
-          message: `${testStats.body.url || testStats.body.value || testStats.body.text || testStats.result.value} at ${parseDate(new Date)}`,
+          level: !testStats ? 'WARN' : 'TRACE',
+          message: `${testStats} at ${parseDate(new Date)}`,
           timestamp: `${this.logDate}`,
-        }
+        };
         break;
+      };
+    };
+    this.testLogs.push(testLog);
+  };
+
+  addTestIdForTestLogs() {
+    this.testLogs.forEach((el) => {
+      if (!el.testId) {
+        return el.testId = this.testId;
       }
-    }
-    this.testLogs.push(testLog)
+      return el;
+    });
   }
 
+  saveAndSendFailedScreenshot(testStats) {
+    const fileName = `${testStats.fullTitle}${testStats.state}.png`;
+    const filePath = path.join(`${__dirname}/failedScreenshotFolder`, fileName);
+    browser.saveScreenshot(filePath);
+    const parseImage = fs.readFileSync(filePath);
+    this.zebrunnerApiClient.sendScreenshot(this.testId, testStats, parseImage, Date.now() - 1);
+  }
 
-  // isScreenshotCommand(command) {
-  //   const isScreenshotEndpoint = /\/session\/[^/]*(\/:sessionId\/[^/]*)?\/screenshot/;
-  //   return command && isScreenshotEndpoint.test(command);
-  // }
-}
+  setAdditionOptions(command) {
+    if (command.name === 'setOwner') {
+      this.additionOptions.owner = command.result;
+    }
+    if (command.name === 'setTestrailTestCaseId') {
+      this.additionOptions.testrailTestCaseId = command.result;
+    }
+    if (command.name === 'setXrayTestKey') {
+      this.additionOptions.xrayTestKey = command.result;
+    }
+  }
+};
