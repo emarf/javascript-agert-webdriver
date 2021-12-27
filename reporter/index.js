@@ -1,6 +1,7 @@
 import WDIOReporter from '@wdio/reporter'
 import ZebrunnerApiClient from './zebr-api-client';
-import { parseDate,getBrowserCapabilities } from './utils';
+import { parseDate, getBrowserCapabilities } from './utils';
+import { threadId } from 'worker_threads';
 const path = require('path');
 const fs = require('fs')
 
@@ -15,12 +16,25 @@ export default class ZebrunnerReporter extends WDIOReporter {
     this.testLogs = [];
     this.logDate;
     this.testId;
-    this.additionOptions = {
-      owner: '',
-      xrayTestKey: '',
-      testrailTestCaseId: ''
-    };
+    this.additionalOptions = {
+      maintainer: '',
+      runArtifacts: '',
+      testArtifacts: '',
+      testrailConfig: '',
+      xrayConfig: '',
+      zephyrConfig: '',
+    }
     this.promiseFinish = [];
+    this.test();
+  }
+
+  test() {
+    process.on("SET_MAINTAINER", this.setMaintainer.bind(this));
+    process.on("SET_RUN_ARTIFACTS", this.setRunArtifactsAttachments.bind(this));
+    process.on("SET_TEST_ARTIFACTS", this.setTestArtifactAttachments.bind(this));
+    process.on("SET_TESTRAIL_CONFIG", this.setTestrailConfig.bind(this));
+    process.on("SET_XRAY_CONFIG", this.setXrayConfig.bind(this));
+    process.on("SET_ZEPHYR_CONFIG", this.setZephyrConfig.bind(this));
   }
 
   get isSynchronised() {
@@ -47,8 +61,9 @@ export default class ZebrunnerReporter extends WDIOReporter {
     this.createLog(testStats, 'start');
     this.response.then(() => {
       try {
+        console.log(this.additionalOptions)
         Promise.all([
-          this.zebrunnerApiClient.startTest(testStats, this.additionOptions),
+          this.zebrunnerApiClient.startTest(testStats, this.additionalOptions),
           this.zebrunnerApiClient.startTestSession(testStats, this.browserCapabilities),
         ]).then((res) => {
           this.testId = res[0];
@@ -85,7 +100,7 @@ export default class ZebrunnerReporter extends WDIOReporter {
       await Promise.all(this.promiseFinish).then(async () => {
         let isReadyToFinish = true;
         this.zebrunnerApiClient.sendLogs(runStats, this.testLogs);
-        this.zebrunnerApiClient.sendRunLabels();
+        this.zebrunnerApiClient.sendRunLabels(this.additionalOptions);
         const response = await this.zebrunnerApiClient.searchTests();
         response.data.results.forEach((el) => {
           if (el.status === 'IN_PROGRESS') {
@@ -96,7 +111,7 @@ export default class ZebrunnerReporter extends WDIOReporter {
         if (isReadyToFinish) {
           await this.zebrunnerApiClient.registerTestRunFinish(runStats);
         } else {
-          return new Promise(resolve => { resolve() });
+          return new Promise(resolve => resolve());
         }
       })
     } catch (e) {
@@ -194,5 +209,35 @@ export default class ZebrunnerReporter extends WDIOReporter {
     if (command.name === 'setXrayTestKey') {
       this.additionOptions.xrayTestKey = command.result;
     }
+  }
+
+  setMaintainer(maintainer) {
+    console.log('maintainer');
+    this.additionalOptions.maintainer = maintainer;
+  }
+
+  setRunArtifactsAttachments(artifacts) {
+    console.log('run artifacts');
+    this.additionalOptions.runArtifacts = artifacts;
+  }
+
+  setTestArtifactAttachments(artifacts) {
+    console.log('test artifacts');
+    this.additionalOptions.testArtifacts = artifacts;
+  }
+
+  setTestrailConfig(testrailConfig) {
+    console.log('testrail config');
+    this.additionalOptions.testrailConfig = testrailConfig;
+  }
+
+  setXrayConfig(xrayConfig) {
+    console.log('xray config');
+    this.additionalOptions.xrayConfig = xrayConfig;
+  }
+
+  setZephyrConfig(zephyrConfig) {
+    console.log('zephyr config');
+    this.additionalOptions.zephyrConfig = zephyrConfig;
   }
 };

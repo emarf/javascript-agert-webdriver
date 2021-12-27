@@ -1,9 +1,8 @@
 import ZebrunnerReporter from './reporter/index';
-import ZebrunnerService from './service/index';
 
 const config = {
-  "reportingServerHostname": "<YOUR_ZEBRUNNER_SERVER_URL>",
-  "reportingServerAccessToken": "<YOUR_ZEBRUNNER_ACCESS_TOKEN>",
+  "reportingServerHostname": "https://webdriveragent.zebrunner.dev",
+  "reportingServerAccessToken": "hDyOHr4LVVuUW6vFaO0WqwtdSab7kKxZZWSMWDrR88l2GgdV9J",
   "reportingProjectKey": "DEF",
   "reportingRunEnvironment": "STAGE",
   "reportingRunBuild": "1.0-alpha",
@@ -127,7 +126,7 @@ exports.config = {
   // Services take over a specific job you don't want to take care of. They enhance
   // your test setup with almost no effort. Unlike plugins, they don't add new
   // commands. Instead, they hook themselves up into the test process.
-  services: ['chromedriver', [ZebrunnerService]],
+  services: ['chromedriver'],
 
   // Framework you want to run your specs with.
   // The following are supported: Mocha, Jasmine, and Cucumber

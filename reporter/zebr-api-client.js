@@ -1,6 +1,7 @@
 import { HttpClient, jsonHeaders, imageHeaders, multipartDataHeaders } from './api-client-axios';
-import { urls, getRefreshToken, getTestRunStart, getTestRunEnd, getTestStart, getTestEnd, getTestSessionStart, getTestSessionEnd, getTestRunLabels, getTestsSearch } from './request-builder';
+import { getRefreshToken, getTestRunStart, getTestRunEnd, getTestStart, getTestEnd, getTestSessionStart, getTestSessionEnd, getTestRunLabels, getTestsSearch } from './request-builder';
 import ConfigResolver from './config-resolver';
+import { urls } from './constants';
 class ZebrunnerApiClient {
   constructor(reporterConfig) {
     this.reporterConfig = reporterConfig
@@ -144,12 +145,12 @@ class ZebrunnerApiClient {
     }
   }
 
-  async sendRunLabels() {
+  async sendRunLabels(additionalOptions) {
     try {
       if (this.runStats.runId) {
         const url = urls.URL_SET_RUN_LABELS.replace('${testRunId}', this.runStats.runId)
         const headers = await this.getHeadersWithAuth(jsonHeaders);
-        const runLabels = getTestRunLabels(this.reporterConfig.reporterOptions)
+        const runLabels = getTestRunLabels(this.reporterConfig.reporterOptions, additionalOptions)
         await this.httpClient.callPut(url, runLabels, headers)
         console.log(`Labels was send for run id ${this.runStats.runId}`)
       }
@@ -172,6 +173,10 @@ class ZebrunnerApiClient {
     } catch (e) {
       console.log(e)
     }
+  }
+
+  async sendArtifacts(additionalOptions) {
+    
   }
 
   async searchTests() {
