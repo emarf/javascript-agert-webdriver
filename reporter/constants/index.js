@@ -7,13 +7,14 @@ const urls = {
   URL_SEND_LOGS: '/api/reporting/v1/test-runs/${testRunId}/logs',
   URL_SEND_SCREENSHOT: '/api/reporting/v1/test-runs/${testRunId}/tests/${testId}/screenshots',
   URL_SET_RUN_LABELS: '/api/reporting/v1/test-runs/${testRunId}/labels',
+  URL_SET_TEST_LABELS: '/api/reporting/v1/test-runs/${testRunId}/tests/${testId}/labels',
   URL_START_SESSION: '/api/reporting/v1/test-runs/${testRunId}/test-sessions',
   URL_UPDATE_SESSION: '/api/reporting/v1/test-runs/${testRunId}/test-sessions/${testSessionId}',
   URL_SEARCH_TESTS: '/api/reporting/api/tests/search',
-  URL_SEND_RUN_ARTIFACTS: '/api/reporting/v1/test-runs/{testRunId}/artifacts',
-  URL_SEND_TEST_ARTIFACTS: '/api/reporting/v1/test-runs/{testRunId}/tests/{testId}/artifacts',
-  URL_SEND_RUN_ARTIFACT_REFERENCES: '/api/reporting/v1/test-runs/{testRunId}/artifact-references',
-  URL_SEND_TEST_ARTIFACT_REFERENCES: '/api/reporting/v1/test-runs/{testRunId}/tests/{testId}/artifact-references',
+  URL_SEND_RUN_ARTIFACTS: '/api/reporting/v1/test-runs/${testRunId}/artifacts',
+  URL_SEND_TEST_ARTIFACTS: '/api/reporting/v1/test-runs/${testRunId}/tests/${testId}/artifacts',
+  URL_SEND_RUN_ARTIFACT_REFERENCES: '/api/reporting/v1/test-runs/${testRunId}/artifact-references',
+  URL_SEND_TEST_ARTIFACT_REFERENCES: '/api/reporting/v1/test-runs/${testRunId}/tests/${testId}/artifact-references',
 };
 
 const testrailLabels = {
@@ -36,16 +37,36 @@ const xrayLabels = {
 }
 
 const zephyrLabels = {
-  SYNC_ENABLED: "com.zebrunner.app/tcm.zephyr.sync.enabled",
-  SYNC_REAL_TIME: "com.zebrunner.app/tcm.zephyr.sync.real-time",
-  TEST_CYCLE_KEY: "com.zebrunner.app/tcm.zephyr.test-cycle-key",
-  JIRA_PROJECT_KEY: "com.zebrunner.app/tcm.zephyr.jira-project-key",
-  TEST_CASE_KEY: "com.zebrunner.app/tcm.zephyr.test-case-key",
+  SYNC_ENABLED: 'com.zebrunner.app/tcm.zephyr.sync.enabled',
+  SYNC_REAL_TIME: 'com.zebrunner.app/tcm.zephyr.sync.real-time',
+  TEST_CYCLE_KEY: 'com.zebrunner.app/tcm.zephyr.test-cycle-key',
+  JIRA_PROJECT_KEY: 'com.zebrunner.app/tcm.zephyr.jira-project-key',
+  TEST_CASE_KEY: 'com.zebrunner.app/tcm.zephyr.test-case-key',
 }
+
+const commonHeaders = {
+  jsonHeaders: {
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+  },
+  imageHeaders: {
+    headers: {
+      'Content-Type': 'image/png',
+    },
+  },
+  multipartDataHeaders: {
+    headers: {
+      'Accept': '*/*',
+    },
+  },
+};
 
 export {
   urls,
   testrailLabels,
   xrayLabels,
   zephyrLabels,
+  commonHeaders,
 };

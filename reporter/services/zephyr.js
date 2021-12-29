@@ -39,9 +39,11 @@ export default class Zephyr {
     this.zephyrConfig.enableSync = { ...this.zephyrConfig.enableSync, value: 'false' };
   }
   enableRealTimeSync() {
-    this.zephyrConfig.enableRealTimeSync = {...this.zephyrConfig.enableRealTimeSync, value: 'true'}
+    this.zephyrConfig.enableRealTimeSync = { ...this.zephyrConfig.enableRealTimeSync, value: 'true' }
   }
   getZephyrConfig() {
-    return this.zephyrConfig;
+    const obj = JSON.parse(JSON.stringify(this.zephyrConfig));
+    this.zephyrConfig.testCaseKey.value = '';
+    return obj;
   }
 }

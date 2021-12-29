@@ -1,35 +1,41 @@
 export default class Artifacts {
   constructor() {
     this.artifactAttachments = {
-      attachToTestRun: '',
-      attachReferenceToTestRun: '',
-      attachToTest: '',
-      attachReferenceToTest: '',
+      attachToTestRun: [],
+      attachReferenceToTestRun: [],
+      attachToTest: [],
+      attachReferenceToTest: [],
     };
   };
 
-  attachToTestRun(fileName, filePath) {
-    this.artifactAttachments.attachToTestRun = { fileName, filePath }
+  attachToTestRun(attachRun) {
+    this.artifactAttachments.attachToTestRun.push(attachRun);
   }
-  attachToTest(fileName, filePath) {
-    this.artifactAttachments.attachToTest = { fileName, filePath }
+  attachToTest(attachTest) {
+    this.artifactAttachments.attachToTest.push(attachTest);
   }
-  attachReferenceToTestRun(name, url) {
-    this.artifactAttachments.attachReferenceToTestRun = { name, url }
+  attachReferenceToTestRun(attachRefRun) {
+    this.artifactAttachments.attachReferenceToTestRun.push(attachRefRun);
   }
-  attachReferenceToTest(name, url) {
-    this.artifactAttachments.attachReferenceToTest = { name, url }
+  attachReferenceToTest(attachRefTest) {
+    this.artifactAttachments.attachReferenceToTest.push(attachRefTest);
   }
   getRunAttachments() {
-    return {
+    const obj = {
       attachToTestRun: this.artifactAttachments.attachToTestRun,
       attachReferenceToTestRun: this.artifactAttachments.attachReferenceToTestRun,
     };
+    this.artifactAttachments.attachToTestRun = [];
+    this.artifactAttachments.attachReferenceToTestRun = [];
+    return obj;
   }
   getTestAttachments() {
-    return {
+    const obj = {
       attachToTest: this.artifactAttachments.attachToTest,
       attachReferenceToTest: this.artifactAttachments.attachReferenceToTest,
-    };
+    }
+    this.artifactAttachments.attachToTest = [];
+    this.artifactAttachments.attachReferenceToTest = [];
+    return obj;
   }
 }

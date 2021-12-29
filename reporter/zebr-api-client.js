@@ -1,7 +1,19 @@
-import { HttpClient, jsonHeaders, imageHeaders, multipartDataHeaders } from './api-client-axios';
-import { getRefreshToken, getTestRunStart, getTestRunEnd, getTestStart, getTestEnd, getTestSessionStart, getTestSessionEnd, getTestRunLabels, getTestsSearch } from './request-builder';
+import HttpClient from './api-client-axios';
+import {
+  getRefreshToken,
+  getTestRunStart,
+  getTestRunEnd,
+  getTestStart,
+  getTestEnd,
+  getTestSessionStart,
+  getTestSessionEnd,
+  getTestRunLabels,
+  getTestsSearch,
+  getTestArtifacts,
+  getArtifactReferences
+} from './request-builder';
 import ConfigResolver from './config-resolver';
-import { urls } from './constants';
+import { commonHeaders, urls } from './constants';
 class ZebrunnerApiClient {
   constructor(reporterConfig) {
     this.reporterConfig = reporterConfig
@@ -18,7 +30,7 @@ class ZebrunnerApiClient {
 
   async refreshToken() {
     if (!this.accessToken) {
-      const res = await this.httpClient.callPost(urls.URL_REFRESH, getRefreshToken(this.configResolver.getReportingServerAccessToken()), jsonHeaders.headers)
+      const res = await this.httpClient.callPost(urls.URL_REFRESH, getRefreshToken(this.configResolver.getReportingServerAccessToken()), commonHeaders.jsonHeaders.headers)
       const token = res.data.authTokenType + ' ' + res.data.authToken
       this.accessToken = token;
     }
@@ -35,26 +47,24 @@ class ZebrunnerApiClient {
   }
 
   async registerTestRunStart(suite) {
-    const headers = await this.getHeadersWithAuth(jsonHeaders);
-    if (headers) {
-      const project = this.configResolver.getReportingProjectKey() ? this.configResolver.getReportingProjectKey() : 'DEF';
-      const testRunStartBody = getTestRunStart(suite, this.reporterConfig)
-      try {
-        const response = await this.httpClient.callPost(urls.URL_REGISTER_RUN.replace('${project}', project), testRunStartBody, headers);
-        this.runStats.runId = response.data.id;
-        this.runStats.uniqueTestId = suite.cid;
-        console.log("Run id was registered: " + this.runStats.runId)
-        return response;
-      } catch (e) {
-        console.log(e)
-      }
+    const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
+    const project = this.configResolver.getReportingProjectKey() ? this.configResolver.getReportingProjectKey() : 'DEF';
+    const testRunStartBody = getTestRunStart(suite, this.reporterConfig)
+    try {
+      const response = await this.httpClient.callPost(urls.URL_REGISTER_RUN.replace('${project}', project), testRunStartBody, headers);
+      this.runStats.runId = response.data.id;
+      this.runStats.uniqueTestId = suite.cid;
+      console.log("Run id was registered: " + this.runStats.runId)
+      return response.data.id;
+    } catch (e) {
+      console.log(e)
     }
   }
 
   async registerTestRunFinish(test) {
     try {
       if (this.runStats.runId) {
-        const headers = await this.getHeadersWithAuth(jsonHeaders);
+        const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
         await this.httpClient.callPut(urls.URL_FINISH_RUN.concat(this.runStats.runId), getTestRunEnd(test), headers);
         console.log(`Run with id ${this.runStats.runId} was finished`)
       }
@@ -63,12 +73,12 @@ class ZebrunnerApiClient {
     }
   }
 
-  async startTest(test, additionalOptions) {
+  async startTest(test, additionalLabels) {
     try {
       if (this.runStats.runId) {
         const url = urls.URL_START_TEST.replace('${testRunId}', this.runStats.runId);
-        const testStartBody = getTestStart(test, additionalOptions);
-        const headers = await this.getHeadersWithAuth(jsonHeaders);
+        const testStartBody = getTestStart(test, additionalLabels);
+        const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
         const response = await this.httpClient.callPost(url, testStartBody, headers);
         this.runStats.zbrTestId = response.data.id;
         this.runStats.uniqueTestId = test.cid;
@@ -84,7 +94,7 @@ class ZebrunnerApiClient {
   async finishTest(test) {
     try {
       if (this.runStats.uniqueTestId === test.cid) {
-        const headers = await this.getHeadersWithAuth(jsonHeaders);
+        const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
         const testEnd = getTestEnd(test);
         const url = urls.URL_FINISH_TEST.replace('${testRunId}', this.runStats.runId).replace('${testId}', this.runStats.zbrTestId);
 
@@ -100,7 +110,7 @@ class ZebrunnerApiClient {
   async startTestSession(test, capabilities) {
     try {
       if (this.runStats.uniqueTestId === test.cid) {
-        const headers = await this.getHeadersWithAuth(jsonHeaders);
+        const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
         const testSession = getTestSessionStart(test, this.runStats.zbrTestId, capabilities);
         const url = urls.URL_START_SESSION.replace('${testRunId}', this.runStats.runId);
         const response = await this.httpClient.callPost(url, testSession, headers);
@@ -117,7 +127,7 @@ class ZebrunnerApiClient {
   async finishTestSession(test) {
     try {
       if (this.runStats.uniqueTestId === test.cid) {
-        const headers = await this.getHeadersWithAuth(jsonHeaders);
+        const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
         const testSession = getTestSessionEnd(test, this.runStats.zbrTestId);
         const url = urls.URL_UPDATE_SESSION.replace('${testRunId}', this.runStats.runId).replace('${testSessionId}', this.runStats.sessionId);
 
@@ -133,7 +143,7 @@ class ZebrunnerApiClient {
     try {
       if (this.runStats.uniqueTestId === test.cid) {
         const url = urls.URL_SEND_LOGS.replace('${testRunId}', this.runStats.runId);
-        const headers = await this.getHeadersWithAuth(jsonHeaders);
+        const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
         const response = await this.httpClient.callPost(url, logs, headers);
 
         if (response.data.id) {
@@ -149,10 +159,10 @@ class ZebrunnerApiClient {
     try {
       if (this.runStats.runId) {
         const url = urls.URL_SET_RUN_LABELS.replace('${testRunId}', this.runStats.runId)
-        const headers = await this.getHeadersWithAuth(jsonHeaders);
-        const runLabels = getTestRunLabels(this.reporterConfig.reporterOptions, additionalOptions)
-        await this.httpClient.callPut(url, runLabels, headers)
-        console.log(`Labels was send for run id ${this.runStats.runId}`)
+        const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
+        const runLabels = getTestRunLabels(this.reporterConfig.reporterOptions, additionalOptions);
+        await this.httpClient.callPut(url, runLabels, headers);
+        console.log(`Labels was send for run id ${this.runStats.runId}`);
       }
     } catch (e) {
       console.log(e)
@@ -163,7 +173,7 @@ class ZebrunnerApiClient {
     try {
       if (this.runStats.uniqueTestId === test.cid) {
         const url = urls.URL_SEND_SCREENSHOT.replace('${testRunId}', this.runStats.runId).replace('${testId}', testId)
-        let headers = await this.getHeadersWithAuth(imageHeaders);
+        let headers = await this.getHeadersWithAuth(commonHeaders.imageHeaders);
         headers['x-zbr-screenshot-captured-at'] = logDate;
         const bufferImage = Buffer.from(img, 'base64');
 
@@ -175,13 +185,46 @@ class ZebrunnerApiClient {
     }
   }
 
-  async sendArtifacts(additionalOptions) {
-    
+  async sendTestArtifacts(additionalOptions, testId) {
+    const url = urls.URL_SEND_TEST_ARTIFACTS.replace('${testRunId}', this.runStats.runId).replace('${testId}', testId);
+    await this.attachmentBody(url, additionalOptions.testArtifacts.attachToTest, testId);
+  }
+
+  async sendRunArtifacts(additionalOptions) {
+    const url = urls.URL_SEND_RUN_ARTIFACTS.replace('${testRunId}', this.runStats.runId);
+    await this.attachmentBody(url, additionalOptions.runArtifacts.attachToTestRun);
+  }
+
+  async attachmentBody(url, attachments, testId = '') {
+    let headers = await this.getHeadersWithAuth(commonHeaders.multipartDataHeaders);
+    const attachFiles = getTestArtifacts(attachments);
+    attachFiles.forEach(async (el) => {
+      headers['Content-Type'] = el.getHeaders()['content-type'];
+      await this.httpClient.callPost(url, el, headers);
+      console.log(`File attach to ${testId ? `test ${testId}` : `run ${this.runStats.runId}`}`);
+    })
+  }
+
+  async sendTestArtifactReferences(additionalOptions, testId) {
+    const url = urls.URL_SEND_TEST_ARTIFACT_REFERENCES.replace('${testRunId}', this.runStats.runId).replace('${testId}', testId);
+    await this.referenceBody(url, additionalOptions.testArtifacts.attachReferenceToTest);
+  }
+
+  async sendRunArtifactReferences(additionalOptions) {
+    const url = urls.URL_SEND_RUN_ARTIFACT_REFERENCES.replace('${testRunId}', this.runStats.runId);
+    await this.referenceBody(url, additionalOptions.runArtifacts.attachReferenceToTestRun);
+  }
+
+  async referenceBody(url, additionalOptions, testId = '') {
+    const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
+    const attachLinks = getArtifactReferences(additionalOptions);
+    await this.httpClient.callPut(url, attachLinks, headers);
+    console.log(`References attach to ${testId ? `test ${testId}` : `run ${this.runStats.runId}`}`);
   }
 
   async searchTests() {
     try {
-      const headers = await this.getHeadersWithAuth(jsonHeaders);
+      const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
       const response = await this.httpClient.callPost(urls.URL_SEARCH_TESTS, getTestsSearch(this.runStats.runId), headers);
       console.log('Search tests');
       return response;

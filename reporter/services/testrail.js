@@ -10,7 +10,6 @@ export default class Testrail {
       caseId: {
         key: testrailLabels.CASE_ID,
         value: '',
-        isTestValue: true,
       },
       runId: {
         key: testrailLabels.RUN_ID,
@@ -72,6 +71,8 @@ export default class Testrail {
     this.testrailConfig.assignee = { ...this.testrailConfig.assignee, value };
   }
   getTestrailConfig() {
-    return this.testrailConfig
+    const obj = JSON.parse(JSON.stringify(this.testrailConfig));
+    this.testrailConfig.caseId.value = '';
+    return obj;
   }
 }

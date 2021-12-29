@@ -1,32 +1,12 @@
 import axios from 'axios';
-
-const jsonHeaders = {
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
-}
-
-const imageHeaders = {
-  headers: {
-    'Content-Type': 'image/png'
-  }
-}
-
-const multipartDataHeaders = {
-  headers: {
-    'Accept': '*/*'
-  }
-}
-
-class HttpClient {
+export default class HttpClient {
   constructor(configResolver) {
     this.configResolver = configResolver;
     this.baseUrl = configResolver.getReportingServerHostname();
     // set config defaults when creating the instance
     this.axiosClient = axios.create({
       baseURL: this.baseUrl,
-      headers: {}
+      headers: {},
     });
   }
 
@@ -40,7 +20,7 @@ class HttpClient {
 
       return postPromise;
     } catch (error) {
-      this._errorLog(error)
+      this._errorLog(error);
     }
   }
 
@@ -63,18 +43,11 @@ class HttpClient {
 
   _errorLog(error) {
     if (error.response) {
-      console.error(`RESPONSE ERROR: ${error.response.status} ${error.response.statusText}`)
+      console.error(`RESPONSE ERROR: ${error.response.status} ${error.response.statusText}`);
     } else if (error.data) {
-      console.error((error.data) ? error.data : error.response.data)
+      console.error((error.data) ? error.data : error.response.data);
     } else {
-      console.error(error)
+      console.error(error);
     }
   }
-}
-
-module.exports = {
-  HttpClient,
-  jsonHeaders,
-  imageHeaders,
-  multipartDataHeaders
-}
+};

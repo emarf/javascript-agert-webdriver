@@ -1,6 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
 import ConfigResolver from './config-resolver';
 import { testrailLabels, xrayLabels, zephyrLabels } from './constants';
+import path from 'path';
+import fs from 'fs';
+import FormData from 'form-data';
+
 
 const getRefreshToken = (token) => {
   return {
@@ -47,7 +51,7 @@ const getTestRunEnd = (test) => {
   };
 };
 
-const getTestStart = (test, additionOptions) => {
+const getTestStart = (test, additionalLabels) => {
   let testStartBody = {
     'name': test.title,
     'startedAt': test.start,
@@ -56,23 +60,23 @@ const getTestStart = (test, additionOptions) => {
     'labels': []
   };
 
-  if (additionOptions.maintainer) {
-    console.debug(`Test owner ${additionOptions.maintainer} was set for the test "${test.title}"`);
-    testStartBody.maintainer = additionOptions.maintainer;
+  if (additionalLabels.maintainer) {
+    console.debug(`Test owner ${additionalLabels.maintainer} was set for the test "${test.title}"`);
+    testStartBody.maintainer = additionalLabels.maintainer;
   }
-  if (additionOptions.testrailConfig.caseId) {
-    additionOptions.testrailConfig.caseId.value.forEach((testrailId) => {
-      testStartBody.labels.push({ key: additionOptions.testrailConfig.caseId.key, value: testrailId });
+  if (additionalLabels.testrailConfig.caseId) {
+    additionalLabels.testrailConfig.caseId.value.forEach((testrailId) => {
+      testStartBody.labels.push({ key: additionalLabels.testrailConfig.caseId.key, value: testrailId });
     })
   }
-  if (additionOptions.xrayConfig.testKey) {
-    additionOptions.xrayConfig.testKey.value.forEach((xrayId) => {
-      testStartBody.labels.push({ key: additionOptions.xrayConfig.testKey.key, value: xrayId });
+  if (additionalLabels.xrayConfig.testKey) {
+    additionalLabels.xrayConfig.testKey.value.forEach((xrayId) => {
+      testStartBody.labels.push({ key: additionalLabels.xrayConfig.testKey.key, value: xrayId });
     })
   }
-  if (additionOptions.zephyrConfig.testCaseKey) {
-    additionOptions.zephyrConfig.testCaseKey.value.forEach((zephyrId) => {
-      testStartBody.labels.push({ key: additionOptions.zephyrConfig.testCaseKey.key, value: zephyrId });
+  if (additionalLabels.zephyrConfig.testCaseKey) {
+    additionalLabels.zephyrConfig.testCaseKey.value.forEach((zephyrId) => {
+      testStartBody.labels.push({ key: additionalLabels.zephyrConfig.testCaseKey.key, value: zephyrId });
     })
   }
   return testStartBody;
@@ -104,7 +108,7 @@ const getTestSessionEnd = (testStats, zbrTestId) => {
 };
 
 const getTestRunLabels = (reporterOptions, additionalOptions) => {
-  var testRunLabelsBody = {
+  let testRunLabelsBody = {
     'items': []
   };
   if (reporterOptions.reportingRunLocale) {
@@ -143,6 +147,21 @@ const getTestsSearch = (testRunId) => {
   }
 };
 
+const getTestArtifacts = (attach) => {
+  const array = attach.reduce((acc, el) => [...acc, { fileName: el[0], filePath: el[1] }], []);
+  return array.map((item) => {
+    const filePath = path.join(__dirname, item.filePath, item.fileName);
+    const formData = new FormData();
+    formData.append('file', fs.createReadStream(filePath));
+    return formData;
+  });
+}
+
+const getArtifactReferences = (references) => {
+  const array = references.reduce((acc, el) => [...acc, { name: el[0], value: el[1] }], []);
+  return { items: array };
+}
+
 module.exports = {
   getRefreshToken,
   getTestRunStart,
@@ -152,5 +171,7 @@ module.exports = {
   getTestSessionStart,
   getTestSessionEnd,
   getTestRunLabels,
-  getTestsSearch
+  getTestsSearch,
+  getTestArtifacts,
+  getArtifactReferences,
 }

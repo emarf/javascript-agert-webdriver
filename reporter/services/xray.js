@@ -35,6 +35,8 @@ export default class Xray {
     this.xrayConfig.enableRealTimeSync = { ...this.xrayConfig.enableRealTimeSync, value: 'true' };
   }
   getXrayConfig() {
-    return this.xrayConfig;
+    const obj = JSON.parse(JSON.stringify(this.xrayConfig));
+    this.xrayConfig.testKey.value = '';
+    return obj;
   }
 }
