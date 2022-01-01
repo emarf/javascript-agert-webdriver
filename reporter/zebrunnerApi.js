@@ -17,6 +17,12 @@ export const ZebrunnerApi = {
   setZephyrConfig: (zephyrConfig) => {
     process.emit('SET_ZEPHYR_CONFIG', zephyrConfig)
   },
+  setRunLabels: (labels) => {
+    process.emit('SET_RUN_LABELS', labels)
+  },
+  setTestLabels: (labels) => {
+    process.emit('SET_TEST_LABELS', labels)
+  },
   //! work on labels
   // Labels: {
   //   attachToTest: () => { },

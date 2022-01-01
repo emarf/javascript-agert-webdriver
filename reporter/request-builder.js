@@ -1,9 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import ConfigResolver from './config-resolver';
 import { testrailLabels, xrayLabels, zephyrLabels } from './constants';
-import path from 'path';
-import fs from 'fs';
-import FormData from 'form-data';
 
 
 const getRefreshToken = (token) => {
@@ -79,6 +76,12 @@ const getTestStart = (test, additionalLabels) => {
       testStartBody.labels.push({ key: additionalLabels.zephyrConfig.testCaseKey.key, value: zephyrId });
     })
   }
+  if (additionalLabels.testLabels) {
+    additionalLabels.testLabels.forEach((label) => {
+      testStartBody.labels.push({ key: label.key, value: label.value })
+    })
+  }
+  console.log(testStartBody);
   return testStartBody;
 };
 
@@ -136,6 +139,13 @@ const getTestRunLabels = (reporterOptions, additionalOptions) => {
       }
     })
   }
+
+  if (additionalOptions.runLabels) {
+    additionalOptions.runLabels.forEach((label) => {
+      testRunLabelsBody.items.push({ key: label.key, value: label.value })
+    })
+  }
+  console.log(testRunLabelsBody);
   return testRunLabelsBody;
 };
 
@@ -147,21 +157,6 @@ const getTestsSearch = (testRunId) => {
   }
 };
 
-const getTestArtifacts = (attach) => {
-  const array = attach.reduce((acc, el) => [...acc, { fileName: el[0], filePath: el[1] }], []);
-  return array.map((item) => {
-    const filePath = path.join(__dirname, item.filePath, item.fileName);
-    const formData = new FormData();
-    formData.append('file', fs.createReadStream(filePath));
-    return formData;
-  });
-}
-
-const getArtifactReferences = (references) => {
-  const array = references.reduce((acc, el) => [...acc, { name: el[0], value: el[1] }], []);
-  return { items: array };
-}
-
 module.exports = {
   getRefreshToken,
   getTestRunStart,
@@ -172,6 +167,4 @@ module.exports = {
   getTestSessionEnd,
   getTestRunLabels,
   getTestsSearch,
-  getTestArtifacts,
-  getArtifactReferences,
 }

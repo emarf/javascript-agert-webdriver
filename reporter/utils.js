@@ -1,3 +1,7 @@
+import path from 'path';
+import fs from 'fs';
+import FormData from 'form-data';
+
 const getBrowserCapabilities = (suiteStats) => ({
   "browserName": suiteStats.capabilities.browserName,
   "browserVersion": suiteStats.capabilities.browserVersion,
@@ -28,9 +32,55 @@ const _addZero = (value) => {
   return value < 10 ? `0${value}` : value;
 };
 
+const getTestArtifacts = (attach) => {
+  const array = attach.reduce((acc, el) => [...acc, { fileName: el[0], filePath: el[1] }], []);
+  return array.map((item) => {
+    const filePath = path.join(__dirname, item.filePath, item.fileName);
+    const formData = new FormData();
+    formData.append('file', fs.createReadStream(filePath));
+    return formData;
+  });
+}
+
+const getArtifactReferences = (references) => {
+  const array = references.reduce((acc, el) => [...acc, { name: el[0], value: el[1] }], []);
+  return { items: array };
+}
+
+const getVideoPath = (title, parent) => {
+  const roughlyFileName = `${parent.replaceAll(' ', '-')}--${title.replaceAll(' ', '-')}`;
+  const videosFolder = path.join(__dirname, `/videos`);
+  let videoName;
+  fs.readdirSync(videosFolder).forEach((file) => {
+    if (file.includes(roughlyFileName)) {
+      videoName = file;
+    }
+  })
+  const videoPath = path.join(__dirname, '/videos/', videoName);
+  const formData = new FormData();
+  const stream = fs.createReadStream(videoPath);
+  stream.on('close', () => { fs.rmSync(videoPath) });
+  stream.on('error', (err) => console.log(err));
+
+  formData.append('video', stream);
+
+  return { formData, videoPath };
+}
+
+const getFileSizeInBytes = (filename) => {
+  const stats = fs.statSync(filename);
+  const fileSizeInBytes = stats.size;
+  console.log('size', fileSizeInBytes);
+  return fileSizeInBytes;
+}
+
 export {
   logObject,
   getObjectAsString,
   parseDate,
   getBrowserCapabilities,
+  getTestArtifacts,
+  getArtifactReferences,
+  getVideoPath,
+  getFileSizeInBytes,
 }

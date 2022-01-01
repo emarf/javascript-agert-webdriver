@@ -1,16 +1,18 @@
-import ZebrunnerReporter from './reporter/index';
+import ZebrunnerReporter from './reporter/reporter';
+const video = require('wdio-video-reporter');
+require('dotenv').config();
 
 const config = {
-  "reportingServerHostname": "https://webdriveragent.zebrunner.dev",
-  "reportingServerAccessToken": "hDyOHr4LVVuUW6vFaO0WqwtdSab7kKxZZWSMWDrR88l2GgdV9J",
-  "reportingProjectKey": "DEF",
-  "reportingRunEnvironment": "STAGE",
-  "reportingRunBuild": "1.0-alpha",
-  "reportingRunDisplayName": "My regression suite1",
-  "reportingRunLocale": "en_US",
-  "reportingCiRunId": "46190073-55db-4411-ac42-fd42b7c96958",
-  "reportingSlackChannels": "",
-  "reportingEmailRecipients": "",
+  // "reportingServerHostname": "https://webdriveragent.zebrunner.dev",
+  // "reportingServerAccessToken": "hDyOHr4LVVuUW6vFaO0WqwtdSab7kKxZZWSMWDrR88l2GgdV9J",
+  // "reportingProjectKey": "DEF",
+  // "reportingRunEnvironment": "STAGE",
+  // "reportingRunBuild": "1.0-alpha",
+  // "reportingRunDisplayName": "My regression suite1",
+  // "reportingRunLocale": "en_US",
+  // "reportingCiRunId": "46190073-55db-4411-ac42-fd42b7c96958",
+  // "reportingSlackChannels": "",
+  // "reportingEmailRecipients": "",
   // "reportingTestrailEnabled": "",
   // "reportingTestrailSuiteId": "",
   // "reportingTestrailTestrunName": "",
@@ -75,7 +77,7 @@ exports.config = {
   //
   capabilities: [
     {
-      maxInstances: 5,
+      maxInstances: 10,
       browserName: 'chrome',
     },
   ],
@@ -149,6 +151,11 @@ exports.config = {
   // The only one supported by default is 'dot'
   // see also: https://webdriver.io/docs/dot-reporter
   reporters: [
+    [video, {
+      saveAllVideos: true,       // If true, also saves videos for successful test cases
+      videoSlowdownMultiplier: 3, // Higher to get slower videos, lower for faster videos [Value 1-100]
+      outputDir: 'reporter/videos',
+    }],
     [ZebrunnerReporter, config],
   ],
 

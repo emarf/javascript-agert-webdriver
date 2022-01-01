@@ -15,6 +15,7 @@ const urls = {
   URL_SEND_TEST_ARTIFACTS: '/api/reporting/v1/test-runs/${testRunId}/tests/${testId}/artifacts',
   URL_SEND_RUN_ARTIFACT_REFERENCES: '/api/reporting/v1/test-runs/${testRunId}/artifact-references',
   URL_SEND_TEST_ARTIFACT_REFERENCES: '/api/reporting/v1/test-runs/${testRunId}/tests/${testId}/artifact-references',
+  URL_SEND_SESSION_ARTIFACTS: '/api/reporting/v1/test-runs/${testRunId}/test-sessions/${testSessionId}/artifacts',
 };
 
 const testrailLabels = {
@@ -43,6 +44,7 @@ const zephyrLabels = {
   JIRA_PROJECT_KEY: 'com.zebrunner.app/tcm.zephyr.jira-project-key',
   TEST_CASE_KEY: 'com.zebrunner.app/tcm.zephyr.test-case-key',
 }
+
 
 const commonHeaders = {
   jsonHeaders: {

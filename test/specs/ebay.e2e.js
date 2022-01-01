@@ -1,4 +1,5 @@
 import Artifacts from "../../reporter/services/artifacts";
+import Labels from "../../reporter/services/labels";
 import Testrail from "../../reporter/services/testrail";
 import Xray from "../../reporter/services/xray";
 import Zephyr from "../../reporter/services/zephyr";
@@ -8,12 +9,16 @@ const artifacts = new Artifacts();
 const testrail = new Testrail();
 const xray = new Xray();
 const zephyr = new Zephyr();
+const label = new Labels();
 
 describe('Ebay Product Search', () => {
   artifacts.attachToTestRun(['runEBAY.txt', '/artifactsFiles']);
   artifacts.attachReferenceToTestRun(['EBAY1runref1', 'https://google.com'])
   artifacts.attachReferenceToTestRun(['EBAY2runref2', 'https://zebrunner.com'])
   ZebrunnerApi.setRunArtifactAttachments(artifacts.getRunAttachments());
+
+  label.setRunLabel(['Author', 'Roman']);
+  ZebrunnerApi.setRunLabels(label.getRunLabels());
 
   before(() => {
     testrail.setSuiteId('EBAYtestrailsuiteId1');
@@ -44,11 +49,11 @@ describe('Ebay Product Search', () => {
     zephyr.setTestCaseKey(['EBAYzephyr1', 'EBAYzephyr2']);
     ZebrunnerApi.setZephyrConfig(zephyr.getZephyrConfig());
 
+    label.setTestLabel(['ForTest', 'Ebay test 1']);
+    ZebrunnerApi.setTestLabels(label.getTestLabels());
 
     await browser.url(`https://www.ebay.com`);
-    await browser.takeScreenshot();
-    await expect(browser).toHaveTitle('Электроник, автомобили, мода, коллекционирование, купоны и другие товары | eBay');
-    await browser.takeScreenshot();
+    await expect(browser).toHaveTitle('Электроника, автомобили, мода, коллекционирование, купоны и другие товары | eBay');
   });
 
   it('should add value to input and click', async () => {
@@ -68,17 +73,18 @@ describe('Ebay Product Search', () => {
     zephyr.setTestCaseKey(['EBAYzephyr3', 'EBAYzephyr4']);
     ZebrunnerApi.setZephyrConfig(zephyr.getZephyrConfig());
 
+    label.setTestLabel(['ForTest', 'Ebay test 2']);
+    ZebrunnerApi.setTestLabels(label.getTestLabels());
+
     const searchInput = $('#gh-ac');
     const searchBtn = $('#gh-btn');
 
     await searchInput.addValue('Laptop');
-    await browser.takeScreenshot();
     await searchBtn.click();
 
     await expect(searchInput).toHaveValue('laptop');
 
     await expect(browser).toHaveTitle('laptop | eBay');
-    await browser.takeScreenshot();
   });
 })
 

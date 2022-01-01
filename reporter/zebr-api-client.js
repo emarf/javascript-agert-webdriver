@@ -9,9 +9,13 @@ import {
   getTestSessionEnd,
   getTestRunLabels,
   getTestsSearch,
-  getTestArtifacts,
-  getArtifactReferences
 } from './request-builder';
+import {
+  getTestArtifacts,
+  getArtifactReferences,
+  getVideoPath,
+  getFileSizeInBytes,
+} from './utils';
 import ConfigResolver from './config-resolver';
 import { commonHeaders, urls } from './constants';
 class ZebrunnerApiClient {
@@ -26,6 +30,8 @@ class ZebrunnerApiClient {
       sessionId: '',
       runId: '',
     }
+    this.testSessions = [];
+    this.sessionOptions = [];
   }
 
   async refreshToken() {
@@ -98,9 +104,11 @@ class ZebrunnerApiClient {
         const testEnd = getTestEnd(test);
         const url = urls.URL_FINISH_TEST.replace('${testRunId}', this.runStats.runId).replace('${testId}', this.runStats.zbrTestId);
 
-        await this.httpClient.callPut(url, testEnd, headers);
+        const response = await this.httpClient.callPut(url, testEnd, headers);
 
         console.log(`Test with ID ${this.runStats.zbrTestId} was finished with status ${test.state.toUpperCase()}`);
+
+        return response;
       }
     } catch (e) {
       console.log(e)
@@ -116,6 +124,7 @@ class ZebrunnerApiClient {
         const response = await this.httpClient.callPost(url, testSession, headers);
 
         this.runStats.sessionId = response.data.id;
+        this.sessionOptions.push({ uid: test.uid, sessionId: response.data.id });
 
         console.log(`Session with id ${response.data.id} was registered for test '${test.fullTitle}'`);
       }
@@ -131,24 +140,23 @@ class ZebrunnerApiClient {
         const testSession = getTestSessionEnd(test, this.runStats.zbrTestId);
         const url = urls.URL_UPDATE_SESSION.replace('${testRunId}', this.runStats.runId).replace('${testSessionId}', this.runStats.sessionId);
 
-        await this.httpClient.callPut(url, testSession, headers);
+        const response = await this.httpClient.callPut(url, testSession, headers);
         console.log(`Session with id ${this.runStats.sessionId} was finish`)
+        return response;
       }
     } catch (e) {
       console.log(e)
     }
   }
 
-  async sendLogs(test, logs) {
+  async sendLogs(logs) {
     try {
-      if (this.runStats.uniqueTestId === test.cid) {
-        const url = urls.URL_SEND_LOGS.replace('${testRunId}', this.runStats.runId);
-        const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
-        const response = await this.httpClient.callPost(url, logs, headers);
+      const url = urls.URL_SEND_LOGS.replace('${testRunId}', this.runStats.runId);
+      const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
+      const response = await this.httpClient.callPost(url, logs, headers);
 
-        if (response.data.id) {
-          console.log(`send logs for all test run`);
-        }
+      if (response.data.id) {
+        console.log(`send logs for all test run`);
       }
     } catch (e) {
       console.log(e);
@@ -169,20 +177,41 @@ class ZebrunnerApiClient {
     }
   }
 
-  async sendScreenshot(testId, test, img, logDate) {
+  async sendScreenshot(testId, img, logDate) {
     try {
-      if (this.runStats.uniqueTestId === test.cid) {
-        const url = urls.URL_SEND_SCREENSHOT.replace('${testRunId}', this.runStats.runId).replace('${testId}', testId)
-        let headers = await this.getHeadersWithAuth(commonHeaders.imageHeaders);
-        headers['x-zbr-screenshot-captured-at'] = logDate;
-        const bufferImage = Buffer.from(img, 'base64');
-
-        await this.httpClient.callPost(url, bufferImage, headers);
-        console.log(`Screenshot was attach to test id ${testId}`)
+      console.log(testId);
+      console.log(img);
+      const url = urls.URL_SEND_SCREENSHOT.replace('${testRunId}', this.runStats.runId).replace('${testId}', testId)
+      let headers = await this.getHeadersWithAuth(commonHeaders.imageHeaders);
+      headers['x-zbr-screenshot-captured-at'] = logDate;
+      const bufferImage = Buffer.from(img, 'base64');
+      console.log(1)
+      const response = await this.httpClient.callPost(url, bufferImage, headers);
+      console.log(2);
+      if (response) {
+        console.log(`Screenshot was attach to test id ${testId}`);
+        return response;
       }
     } catch (e) {
       console.log(e)
     }
+  }
+
+  async sendTestVideo(test) {
+    const currentSession = this.sessionOptions.filter((item) => item.uid === test.uid);
+    const { formData, videoPath } = getVideoPath(test.title, test.parent);
+    const url = urls.URL_SEND_SESSION_ARTIFACTS.replace('${testRunId}', this.runStats.runId).replace('${testSessionId}', currentSession[0].sessionId);
+    let headers = await this.getHeadersWithAuth(commonHeaders.multipartDataHeaders);
+    headers['Content-Type'] = formData.getHeaders()['content-type'];
+    headers['x-zbr-video-content-length'] = getFileSizeInBytes(videoPath);
+    console.log('video url', url);
+    console.log('video path', videoPath);
+    const response = await this.httpClient.callPost(url, formData, headers);
+    console.log(response.status);
+    if (response.status === 201) {
+      console.log(`Video send`);
+    }
+    return response;
   }
 
   async sendTestArtifacts(additionalOptions, testId) {
