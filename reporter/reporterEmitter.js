@@ -1,4 +1,4 @@
-export const ZebrunnerApi = {
+export const reporterEmitter = {
   setMaintainer: (maintainer) => {
     process.emit('SET_MAINTAINER', maintainer)
   },
@@ -23,9 +23,10 @@ export const ZebrunnerApi = {
   setTestLabels: (labels) => {
     process.emit('SET_TEST_LABELS', labels)
   },
-  //! work on labels
-  // Labels: {
-  //   attachToTest: () => { },
-  //   attachToTestRun: () => { },
-  // },
+  setTestLogs: (logs) => {
+    process.emit('SET_TEST_LOGS', logs)
+  },
+  revertTestRegistration: () => {
+    process.emit('REVERT_TEST_REGISTRATION',)
+  },
 }

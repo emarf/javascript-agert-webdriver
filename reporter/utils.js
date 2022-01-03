@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import FormData from 'form-data';
+import { Console } from 'console';
 
 const getBrowserCapabilities = (suiteStats) => ({
   "browserName": suiteStats.capabilities.browserName,
@@ -47,24 +48,44 @@ const getArtifactReferences = (references) => {
   return { items: array };
 }
 
-const getVideoPath = (title, parent) => {
+const getVideoAttachments = async (title, parent) => {
   const roughlyFileName = `${parent.replaceAll(' ', '-')}--${title.replaceAll(' ', '-')}`;
-  const videosFolder = path.join(__dirname, `/videos`);
+  const videosFolder = _joinPath(['videos']);
   let videoName;
+
   fs.readdirSync(videosFolder).forEach((file) => {
     if (file.includes(roughlyFileName)) {
       videoName = file;
     }
-  })
-  const videoPath = path.join(__dirname, '/videos/', videoName);
+  });
+
+  const videoPath = _joinPath(['/videos', videoName]);
   const formData = new FormData();
   const stream = fs.createReadStream(videoPath);
+
   stream.on('close', () => { fs.rmSync(videoPath) });
   stream.on('error', (err) => console.log(err));
-
   formData.append('video', stream);
-
   return { formData, videoPath };
+}
+
+const getScreenshotAttachments = (title, parent) => {
+  const roughlyFileName = `${parent.replaceAll(' ', '-')}--${title.replaceAll(' ', '-')}`;
+  const folder = _joinPath(['videos', 'rawSeleniumVideoGrabs']);
+  let screenshotFolder;
+  const screenshots = [];
+  fs.readdirSync(folder).forEach((file) => {
+    if (file.includes(roughlyFileName)) {
+      screenshotFolder = file;
+    }
+  })
+
+  fs.readdirSync(_joinPath(['videos', 'rawSeleniumVideoGrabs', screenshotFolder])).forEach((file) => {
+    const bufferImg = fs.readFileSync(_joinPath(['videos', 'rawSeleniumVideoGrabs', screenshotFolder, file]));
+    screenshots.push(bufferImg);
+  });
+  fs.rmSync(_joinPath(['videos', 'rawSeleniumVideoGrabs', screenshotFolder]), { recursive: true });
+  return screenshots;
 }
 
 const getFileSizeInBytes = (filename) => {
@@ -74,6 +95,11 @@ const getFileSizeInBytes = (filename) => {
   return fileSizeInBytes;
 }
 
+const _joinPath = (filePath) => {
+  const paths = [__dirname, ...filePath];
+  return path.join(...paths);
+}
+
 export {
   logObject,
   getObjectAsString,
@@ -81,6 +107,7 @@ export {
   getBrowserCapabilities,
   getTestArtifacts,
   getArtifactReferences,
-  getVideoPath,
+  getVideoAttachments,
+  getScreenshotAttachments,
   getFileSizeInBytes,
 }

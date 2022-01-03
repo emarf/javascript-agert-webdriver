@@ -13,6 +13,7 @@ export default class ZebrunnerReporter extends WDIOReporter {
     this.syncReporting = false;
     this.runId;
     this.currentTestId;
+    this.logs = [];
     // options that can change every run
     this.testAdditionalLabels = {
       maintainer: '',
@@ -39,6 +40,8 @@ export default class ZebrunnerReporter extends WDIOReporter {
     this.registerServicesListeners();
     this.tests;
     this.allTests = [];
+    this.isRevert = false;
+    this.revertTests = [];
   }
 
   registerServicesListeners() {
@@ -50,6 +53,8 @@ export default class ZebrunnerReporter extends WDIOReporter {
     process.on("SET_ZEPHYR_CONFIG", this.setZephyrConfig.bind(this));
     process.on("SET_RUN_LABELS", this.setRunLabels.bind(this));
     process.on("SET_TEST_LABELS", this.setTestLabels.bind(this));
+    process.on("SET_TEST_LOGS", this.setTestLogs.bind(this));
+    process.on("REVERT_TEST_REGISTRATION", this.revertTestRegistration.bind(this));
   }
 
   get isSynchronised() {
@@ -85,15 +90,16 @@ export default class ZebrunnerReporter extends WDIOReporter {
 
   onTestFail(testStats) {
     console.log('onTestFail');
-    this.saveAndSendFailedScreenshot(this.currentTestId, testStats);
+    // this.saveAndSendFailedScreenshot(this.currentTestId, testStats);
     this.promiseFinish.push(this.zebrunnerApiClient.finishTestSession(testStats));
     this.promiseFinish.push(this.zebrunnerApiClient.finishTest(testStats));
   };
 
   onSuiteEnd(testStats) {
     console.log('onSuiteEnd');
-    const arraysOfLogs = this.allTests.map((testId, index) => this.prepareLogs(testId, testStats.tests[index]));
-    const testsLogs = arraysOfLogs.flat();
+    const arraysOfLogs = this.allTests.map((testId, index) => this.createLogs(testId, testStats.tests[index]));
+    this.logs.push(arraysOfLogs);
+    const testsLogs = this.logs.flat(2);
     this.zebrunnerApiClient.sendLogs(testsLogs);
     this.tests = testStats.tests;
   }
@@ -103,10 +109,13 @@ export default class ZebrunnerReporter extends WDIOReporter {
     try {
       await Promise.all(this.promiseFinish).then(async () => {
         let isReadyToFinish = true;
-
+        // this.revertTests.forEach(async (testId) => await this.zebrunnerApiClient.revertTestRegistration(testId));
         await this.sendRunAttachments();
 
-        this.tests.forEach(async (test) => await this.zebrunnerApiClient.sendTestVideo(test));
+        this.tests.forEach((test, index) => {
+          this.zebrunnerApiClient.sendTestVideo(test);
+          this.zebrunnerApiClient.sendScreenshots(test, this.allTests[index])
+        });
 
         const response = await this.zebrunnerApiClient.searchTests();
         response.data.results.forEach((el) => {
@@ -141,7 +150,6 @@ export default class ZebrunnerReporter extends WDIOReporter {
       //   this.zebrunnerApiClient.sendScreenshot(this.currentTestId, command.result.value, Date.now());
       //   return;
       // }
-
     } catch (e) {
       console.log(e);
     }
@@ -154,10 +162,18 @@ export default class ZebrunnerReporter extends WDIOReporter {
           this.zebrunnerApiClient.startTest(testStats, this.testAdditionalLabels),
           this.zebrunnerApiClient.startTestSession(testStats, this.browserCapabilities),
         ]).then((res) => {
+          // if (this.isRevert) {
+          //   this.revertTests.push(res[0]);
+          //   this.isRevert = false;
+          // } else {
+          //   this.allTests.push(res[0])
+          //   this.currentTestId = res[0];
+          //   this.sendTestArtifacts(this.additionalOptions, this.currentTestId);
+          // }
           this.allTests.push(res[0])
           this.currentTestId = res[0];
           this.sendTestArtifacts(this.additionalOptions, this.currentTestId);
-        });
+        })
       } catch (e) {
         console.log(e);
       }
@@ -182,18 +198,18 @@ export default class ZebrunnerReporter extends WDIOReporter {
     };
   }
 
-  saveAndSendFailedScreenshot(testId, testStats) {
-    const fileName = `${testStats.fullTitle}${testStats.state}.png`;
-    if (!fs.existsSync(path.join(__dirname, 'failedScreenshotFolder'))) {
-      fs.mkdirSync(path.join(__dirname, '/failedScreenshotFolder'));
-    }
-    const filePath = path.join(__dirname, `/failedScreenshotFolder/${fileName}`);
-    browser.saveScreenshot(filePath);
-    const img = fs.readFileSync(filePath);
-    this.zebrunnerApiClient.sendScreenshot(testId, img, Date.now() - 2).then(() => {
-      fs.rmSync(filePath);
-    });
-  }
+  // saveAndSendFailedScreenshot(testId, testStats) {
+  //   const fileName = `${testStats.fullTitle}${testStats.state}.png`;
+  //   if (!fs.existsSync(path.join(__dirname, 'failedScreenshotFolder'))) {
+  //     fs.mkdirSync(path.join(__dirname, '/failedScreenshotFolder'));
+  //   }
+  //   const filePath = path.join(__dirname, `/failedScreenshotFolder/${fileName}`);
+  //   browser.saveScreenshot(filePath);
+  //   const img = fs.readFileSync(filePath);
+  //   this.zebrunnerApiClient.sendScreenshot(testId, img, Date.now() - 2).then(() => {
+  //     fs.rmSync(filePath);
+  //   });
+  // }
 
   setMaintainer(maintainer) {
     console.log('maintainer');
@@ -231,16 +247,28 @@ export default class ZebrunnerReporter extends WDIOReporter {
   setRunLabels(labels) {
     console.log('run labels');
     this.additionalOptions.runLabels = labels;
-    console.log(this.additionalOptions)
+    // console.log(this.additionalOptions)
   }
 
   setTestLabels(labels) {
     console.log('test labels');
     this.testAdditionalLabels.testLabels = labels;
-    console.log(this.testAdditionalLabels)
+    // console.log(this.testAdditionalLabels)
   }
 
-  prepareLogs(testId, testStats) {
+  setTestLogs(logs) {
+    console.log('test logs');
+    const testId = this.currentTestId;
+    const logsWithId = logs.map((log) => ({ ...log, testId }));
+    this.logs.push(logsWithId);
+  }
+
+  revertTestRegistration() {
+    console.log('revert test');
+    this.isRevert = true;
+  }
+
+  createLogs(testId, testStats) {
     const logsForTest = [];
     if (testStats.start) {
       logsForTest.push({

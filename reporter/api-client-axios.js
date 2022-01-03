@@ -10,29 +10,33 @@ export default class HttpClient {
     });
   }
 
-  async callPost(url, body, headers) {
-    try {
-      const config = {
-        headers: headers
-      }
-      const postPromise = await this.axiosClient.post(url, body, config);
-      this._positiveLog(postPromise, url, body);
-
-      return postPromise;
-    } catch (error) {
-      this._errorLog(error);
-    }
-  }
-
-  async callPut(url, body, headers, log = false, forceDisableLog = false) {
+  async fetchRequest(method, url, body, headers) {
     try {
       const config = {
         headers: headers,
       }
-      const putPromise = await this.axiosClient.put(url, body, config);
-      this._positiveLog(putPromise, url, body, log, forceDisableLog);
+
+      let response;
+
+      if (method === 'PUT') {
+        response = await this.axiosClient.put(url, body, config);
+      }
+      if (method === 'POST') {
+        response = await this.axiosClient.post(url, body, config);
+      }
+      if (method === 'DELETE') {
+        console.log(method)
+        console.log(url)
+        console.log(body)
+        console.log(config)
+        response = await this.axiosClient.delete(url, '', config);
+      }
+
+      this._positiveLog(response, url, body);
+
+      return response;
     } catch (error) {
-      this._positiveLog(error, forceDisableLog);
+      this._errorLog(error);
     }
   }
 
@@ -42,6 +46,7 @@ export default class HttpClient {
   }
 
   _errorLog(error) {
+    console.log(error.response.data)
     if (error.response) {
       console.error(`RESPONSE ERROR: ${error.response.status} ${error.response.statusText}`);
     } else if (error.data) {

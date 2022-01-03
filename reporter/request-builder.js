@@ -81,7 +81,6 @@ const getTestStart = (test, additionalLabels) => {
       testStartBody.labels.push({ key: label.key, value: label.value })
     })
   }
-  console.log(testStartBody);
   return testStartBody;
 };
 
@@ -139,13 +138,11 @@ const getTestRunLabels = (reporterOptions, additionalOptions) => {
       }
     })
   }
-
   if (additionalOptions.runLabels) {
     additionalOptions.runLabels.forEach((label) => {
       testRunLabelsBody.items.push({ key: label.key, value: label.value })
     })
   }
-  console.log(testRunLabelsBody);
   return testRunLabelsBody;
 };
 

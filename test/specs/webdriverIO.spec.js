@@ -2,7 +2,7 @@ import Artifacts from "../../reporter/services/artifacts";
 import Testrail from "../../reporter/services/testrail";
 import Xray from "../../reporter/services/xray";
 import Zephyr from "../../reporter/services/zephyr";
-import { ZebrunnerApi } from '../../reporter/zebrunnerApi';
+import { reporterEmitter } from '../../reporter/reporterEmitter';
 
 const artifacts = new Artifacts();
 const testrail = new Testrail();
@@ -13,7 +13,7 @@ describe('Webdriverio main page', () => {
   artifacts.attachToTestRun(['runWDIO.txt', '/artifactsFiles']);
   artifacts.attachReferenceToTestRun(['WDIO1runref1', 'https://google.com'])
   artifacts.attachReferenceToTestRun(['WDIO2runref2', 'https://zebrunner.com'])
-  ZebrunnerApi.setRunArtifactAttachments(artifacts.getRunAttachments());
+  reporterEmitter.setRunArtifactAttachments(artifacts.getRunAttachments());
 
   before(() => {
     testrail.setSuiteId('WDIOtestrailsuiteId');
@@ -30,21 +30,21 @@ describe('Webdriverio main page', () => {
     artifacts.attachToTest(['testWDIO.txt', '/artifactsFiles']);
     artifacts.attachReferenceToTest(['WDIOtestref1', 'https://github.com']);
     artifacts.attachReferenceToTest(['WDIOtestref2', 'https://www.youtube.com']);
-    ZebrunnerApi.setTestArtifactAttachments(artifacts.getTestAttachments());
+    reporterEmitter.setTestArtifactAttachments(artifacts.getTestAttachments());
 
-    ZebrunnerApi.setMaintainer('emarf');
+    reporterEmitter.setMaintainer('emarf');
 
     testrail.setCaseId(['WDIOtestrail', 'WDIOtestrail1']);
-    ZebrunnerApi.setTestrailConfig(testrail.getTestrailConfig());
+    reporterEmitter.setTestrailConfig(testrail.getTestrailConfig());
 
     xray.setTestKey(['WDIOxray', 'WDIOxray1']);
-    ZebrunnerApi.setXrayConfig(xray.getXrayConfig());
+    reporterEmitter.setXrayConfig(xray.getXrayConfig());
 
     zephyr.setTestCaseKey(['WDIOzephyr', 'WDIOzephyr1']);
-    ZebrunnerApi.setZephyrConfig(zephyr.getZephyrConfig());
+    reporterEmitter.setZephyrConfig(zephyr.getZephyrConfig());
 
     await browser.url(`https://webdriver.io`);
     await browser.takeScreenshot();
-    await expect(browser).toHaveTitle('WebdriverIO · Next-ge browser and mobile automation test framework for Node.js | WebdriverIO');
+    await expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO');
   });
 });

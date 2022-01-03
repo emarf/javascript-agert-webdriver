@@ -5,17 +5,14 @@ export default class Labels {
       testLabels: [],
     };
   };
-
   setRunLabel(label) {
     const obj = { key: label[0], value: label[1] };
     this.labelsConfig.runLabels.push(obj);
   }
-
   setTestLabel(label) {
     const obj = { key: label[0], value: label[1] };
     this.labelsConfig.testLabels.push(obj);
   }
-
   getRunLabels() {
     const obj = JSON.parse(JSON.stringify(this.labelsConfig.runLabels));
     this.labelsConfig.runLabels = [];
