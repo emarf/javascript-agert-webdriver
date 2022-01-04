@@ -1,7 +1,7 @@
 import ZebrunnerReporter from './reporter/reporter';
 const video = require('wdio-video-reporter');
 require('dotenv').config();
-
+console.log(process.env);
 const config = {
   // "reportingServerHostname": "https://webdriveragent.zebrunner.dev",
   // "reportingServerAccessToken": "hDyOHr4LVVuUW6vFaO0WqwtdSab7kKxZZWSMWDrR88l2GgdV9J",
@@ -152,8 +152,8 @@ exports.config = {
   // see also: https://webdriver.io/docs/dot-reporter
   reporters: [
     [video, {
-      saveAllVideos: true,       // If true, also saves videos for successful test cases
-      videoSlowdownMultiplier: 3, // Higher to get slower videos, lower for faster videos [Value 1-100]
+      saveAllVideos: true,
+      videoSlowdownMultiplier: 3,
       outputDir: 'reporter/videos',
     }],
     [ZebrunnerReporter, config],

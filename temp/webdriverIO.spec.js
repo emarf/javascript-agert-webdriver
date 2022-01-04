@@ -1,8 +1,8 @@
-import Artifacts from "../../reporter/services/artifacts";
-import Testrail from "../../reporter/services/testrail";
-import Xray from "../../reporter/services/xray";
-import Zephyr from "../../reporter/services/zephyr";
-import { reporterEmitter } from '../../reporter/reporterEmitter';
+import Artifacts from '../reporter/services/artifacts';
+import Testrail from '../reporter/services/testrail';
+import Xray from '../reporter/services/xray';
+import Zephyr from '../reporter/services/zephyr';
+import { reporterEmitter } from '../reporter/reporterEmitter';
 
 const artifacts = new Artifacts();
 const testrail = new Testrail();
