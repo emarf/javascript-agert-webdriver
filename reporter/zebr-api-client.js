@@ -166,12 +166,14 @@ class ZebrunnerApiClient {
 
   async sendRunLabels(additionalOptions) {
     try {
-      if (this.runStats.runId) {
-        const url = urls.URL_SET_RUN_LABELS.replace('${testRunId}', this.runStats.runId)
-        const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
-        const runLabels = getTestRunLabels(this.reporterConfig.reporterOptions, additionalOptions);
+      const url = urls.URL_SET_RUN_LABELS.replace('${testRunId}', this.runStats.runId)
+      const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
+      const runLabels = getTestRunLabels(this.reporterConfig.reporterOptions, additionalOptions);
+      if (runLabels.length === 0) {
         await this.httpClient.fetchRequest('PUT', url, runLabels, headers);
         console.log(`Labels was send for run id ${this.runStats.runId}`);
+      } else {
+        console.log(`No labels for run id ${this.runStats.runId}`)
       }
     } catch (e) {
       console.log(e)
@@ -179,10 +181,15 @@ class ZebrunnerApiClient {
   }
 
   async sendScreenshots(test, testId) {
-    try {
+    try {s
       const url = urls.URL_SEND_SCREENSHOT.replace('${testRunId}', this.runStats.runId).replace('${testId}', testId);
       let headers = await this.getHeadersWithAuth(commonHeaders.imageHeaders);
       const arrOfScreenshots = getScreenshotAttachments(test.title, test.parent);
+      
+      if (!testId) {
+        return;
+      }
+
       Promise.all(arrOfScreenshots.map(async (screen, index) => {
         headers['x-zbr-screenshot-captured-at'] = test.start.getTime() + index + 1;
         return await this.httpClient.fetchRequest('POST', url, screen, headers);
@@ -212,15 +219,19 @@ class ZebrunnerApiClient {
 
   async sendTestArtifacts(additionalOptions, testId) {
     const url = urls.URL_SEND_TEST_ARTIFACTS.replace('${testRunId}', this.runStats.runId).replace('${testId}', testId);
-    await this.attachmentBody(url, additionalOptions.testArtifacts.attachToTest, testId);
+    if (additionalOptions.testArtifacts.attachToTest) {
+      await this._attachmentBody(url, additionalOptions.testArtifacts.attachToTest, testId);
+    }
   }
 
   async sendRunArtifacts(additionalOptions) {
     const url = urls.URL_SEND_RUN_ARTIFACTS.replace('${testRunId}', this.runStats.runId);
-    await this.attachmentBody(url, additionalOptions.runArtifacts.attachToTestRun);
+    if (additionalOptions.runArtifacts.attachToTestRun) {
+      await this._attachmentBody(url, additionalOptions.runArtifacts.attachToTestRun);
+    }
   }
 
-  async attachmentBody(url, attachments, testId = '') {
+  async _attachmentBody(url, attachments, testId = '') {
     let headers = await this.getHeadersWithAuth(commonHeaders.multipartDataHeaders);
     const attachFiles = getTestArtifacts(attachments);
     attachFiles.forEach(async (el) => {
@@ -232,15 +243,19 @@ class ZebrunnerApiClient {
 
   async sendTestArtifactReferences(additionalOptions, testId) {
     const url = urls.URL_SEND_TEST_ARTIFACT_REFERENCES.replace('${testRunId}', this.runStats.runId).replace('${testId}', testId);
-    await this.referenceBody(url, additionalOptions.testArtifacts.attachReferenceToTest);
+    if (additionalOptions.testArtifacts.attachReferenceToTest) {
+      await this._referenceBody(url, additionalOptions.testArtifacts.attachReferenceToTest);
+    }
   }
 
   async sendRunArtifactReferences(additionalOptions) {
     const url = urls.URL_SEND_RUN_ARTIFACT_REFERENCES.replace('${testRunId}', this.runStats.runId);
-    await this.referenceBody(url, additionalOptions.runArtifacts.attachReferenceToTestRun);
+    if (additionalOptions.runArtifacts.attachReferenceToTestRun) {
+      await this._referenceBody(url, additionalOptions.runArtifacts.attachReferenceToTestRun);
+    }
   }
 
-  async referenceBody(url, additionalOptions, testId = '') {
+  async _referenceBody(url, additionalOptions, testId = '') {
     const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
     const attachLinks = getArtifactReferences(additionalOptions);
     await this.httpClient.fetchRequest('PUT', url, attachLinks, headers);

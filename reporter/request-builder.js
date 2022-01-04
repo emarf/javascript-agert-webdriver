@@ -117,21 +117,21 @@ const getTestRunLabels = (reporterOptions, additionalOptions) => {
     testRunLabelsBody.items.push({ 'key': 'com.zebrunner.app/sut.locale', 'value': reporterOptions.reportingRunLocale })
   }
 
-  if (additionalOptions.testrailConfig.enableSync.value === 'true') {
+  if (additionalOptions.testrailConfig && additionalOptions.testrailConfig.enableSync.value === 'true') {
     Object.keys(additionalOptions.testrailConfig).forEach((item) => {
       if (additionalOptions.testrailConfig[item].key !== testrailLabels.CASE_ID && additionalOptions.testrailConfig[item].value) {
         testRunLabelsBody.items.push(additionalOptions.testrailConfig[item])
       }
     })
   }
-  if (additionalOptions.xrayConfig.enableSync.value === 'true') {
+  if (additionalOptions.xrayConfig && additionalOptions.xrayConfig.enableSync.value === 'true') {
     Object.keys(additionalOptions.xrayConfig).forEach((item) => {
       if (additionalOptions.xrayConfig[item].key !== xrayLabels.TEST_KEY && additionalOptions.xrayConfig[item].value) {
         testRunLabelsBody.items.push(additionalOptions.xrayConfig[item])
       }
     })
   }
-  if (additionalOptions.zephyrConfig.enableSync.value === 'true') {
+  if (additionalOptions.zephyrConfig && additionalOptions.zephyrConfig.enableSync.value === 'true') {
     Object.keys(additionalOptions.zephyrConfig).forEach((item) => {
       if (additionalOptions.zephyrConfig[item].key !== zephyrLabels.TEST_CASE_KEY && additionalOptions.zephyrConfig[item].value) {
         testRunLabelsBody.items.push(additionalOptions.zephyrConfig[item])
@@ -143,6 +143,7 @@ const getTestRunLabels = (reporterOptions, additionalOptions) => {
       testRunLabelsBody.items.push({ key: label.key, value: label.value })
     })
   }
+
   return testRunLabelsBody;
 };
 

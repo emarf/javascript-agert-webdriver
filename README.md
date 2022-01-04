@@ -336,3 +336,11 @@ describe('run describe', () => {
   })
 })
 ```
+
+Sometimes reporter does not have time to complete run and you need to add to `wdio.conf.js` next: 
+
+```js
+exports.config = {
+  reporterSyncInterval: 10 * 1000,
+}
+```

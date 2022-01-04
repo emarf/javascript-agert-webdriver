@@ -1,7 +1,7 @@
 import ZebrunnerReporter from './reporter/reporter';
 const video = require('wdio-video-reporter');
 require('dotenv').config();
-console.log(process.env);
+
 const config = {
   // "reportingServerHostname": "https://webdriveragent.zebrunner.dev",
   // "reportingServerAccessToken": "hDyOHr4LVVuUW6vFaO0WqwtdSab7kKxZZWSMWDrR88l2GgdV9J",
@@ -25,6 +25,7 @@ const config = {
 }
 
 exports.config = {
+  reporterSyncInterval: 10 * 1000,
   //
   // ====================
   // Runner Configuration

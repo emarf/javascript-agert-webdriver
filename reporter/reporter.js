@@ -1,6 +1,6 @@
 import WDIOReporter from '@wdio/reporter'
 import ZebrunnerApiClient from './zebr-api-client';
-import { parseDate, getBrowserCapabilities, deleteVideoFolder } from './utils';
+import { parseDate, getBrowserCapabilities } from './utils';
 const path = require('path');
 const fs = require('fs')
 
@@ -109,7 +109,6 @@ export default class ZebrunnerReporter extends WDIOReporter {
     try {
       await Promise.all(this.promiseFinish).then(async () => {
         let isReadyToFinish = true;
-        // this.revertTests.forEach(async (testId) => await this.zebrunnerApiClient.revertTestRegistration(testId));
         await this.sendRunAttachments();
 
         this.tests.forEach((test, index) => {
@@ -123,6 +122,8 @@ export default class ZebrunnerReporter extends WDIOReporter {
             isReadyToFinish = false;
           };
         });
+
+        this.revertTests.forEach((testId) => this.zebrunnerApiClient.revertTestRegistration(testId));
 
         if (isReadyToFinish) {
           await this.zebrunnerApiClient.registerTestRunFinish(runStats);
@@ -162,14 +163,10 @@ export default class ZebrunnerReporter extends WDIOReporter {
           this.zebrunnerApiClient.startTest(testStats, this.testAdditionalLabels),
           this.zebrunnerApiClient.startTestSession(testStats, this.browserCapabilities),
         ]).then((res) => {
-          // if (this.isRevert) {
-          //   this.revertTests.push(res[0]);
-          //   this.isRevert = false;
-          // } else {
-          //   this.allTests.push(res[0])
-          //   this.currentTestId = res[0];
-          //   this.sendTestArtifacts(this.additionalOptions, this.currentTestId);
-          // }
+          if (this.isRevert) {
+            this.revertTests.push(res[0]);
+            this.isRevert = false;
+          }
           this.allTests.push(res[0])
           this.currentTestId = res[0];
           this.sendTestArtifacts(this.additionalOptions, this.currentTestId);
@@ -247,13 +244,11 @@ export default class ZebrunnerReporter extends WDIOReporter {
   setRunLabels(labels) {
     console.log('run labels');
     this.additionalOptions.runLabels = labels;
-    // console.log(this.additionalOptions)
   }
 
   setTestLabels(labels) {
     console.log('test labels');
     this.testAdditionalLabels.testLabels = labels;
-    // console.log(this.testAdditionalLabels)
   }
 
   setTestLogs(logs) {

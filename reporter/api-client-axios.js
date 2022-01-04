@@ -25,11 +25,7 @@ export default class HttpClient {
         response = await this.axiosClient.post(url, body, config);
       }
       if (method === 'DELETE') {
-        console.log(method)
-        console.log(url)
-        console.log(body)
-        console.log(config)
-        response = await this.axiosClient.delete(url, '', config);
+        response = await this.axiosClient.delete(url, config);
       }
 
       this._positiveLog(response, url, body);
