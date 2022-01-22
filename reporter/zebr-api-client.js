@@ -169,9 +169,10 @@ class ZebrunnerApiClient {
       const url = urls.URL_SET_RUN_LABELS.replace('${testRunId}', this.runStats.runId)
       const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
       const runLabels = getTestRunLabels(this.reporterConfig.reporterOptions, additionalOptions);
-      if (runLabels.length === 0) {
+      console.log(runLabels);
+      if (runLabels.items.length > 0) {
         await this.httpClient.fetchRequest('PUT', url, runLabels, headers);
-        console.log(`Labels was send for run id ${this.runStats.runId}`);
+        console.log(`Labels were send for run id ${this.runStats.runId}`);
       } else {
         console.log(`No labels for run id ${this.runStats.runId}`)
       }
@@ -181,11 +182,11 @@ class ZebrunnerApiClient {
   }
 
   async sendScreenshots(test, testId) {
-    try {s
+    try {
       const url = urls.URL_SEND_SCREENSHOT.replace('${testRunId}', this.runStats.runId).replace('${testId}', testId);
       let headers = await this.getHeadersWithAuth(commonHeaders.imageHeaders);
       const arrOfScreenshots = getScreenshotAttachments(test.title, test.parent);
-      
+
       if (!testId) {
         return;
       }
@@ -195,7 +196,7 @@ class ZebrunnerApiClient {
         return await this.httpClient.fetchRequest('POST', url, screen, headers);
       })).then((res) => {
         if (res) {
-          console.log(`Screenshots was attached to test id ${testId}`);
+          console.log(`Screenshots were attached to the test id ${testId}`);
         }
       }).catch((e) => console.log(e));
     } catch (e) {

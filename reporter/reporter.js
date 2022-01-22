@@ -231,6 +231,7 @@ export default class ZebrunnerReporter extends WDIOReporter {
 
   setXrayConfig(xrayConfig) {
     console.log('xray config');
+    console.log(xrayConfig);
     this.additionalOptions.xrayConfig = xrayConfig;
     this.testAdditionalLabels.xrayConfig.testKey = xrayConfig.testKey;
   }

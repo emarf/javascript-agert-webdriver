@@ -56,7 +56,7 @@ const getTestStart = (test, additionalLabels) => {
     'methodName': test.title,
     'labels': []
   };
-
+  console.log(testStartBody);
   if (additionalLabels.maintainer) {
     console.debug(`Test owner ${additionalLabels.maintainer} was set for the test "${test.title}"`);
     testStartBody.maintainer = additionalLabels.maintainer;
