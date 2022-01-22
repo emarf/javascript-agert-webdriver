@@ -1,17 +1,18 @@
-import ZebrunnerReporter from './reporter/index';
-import ZebrunnerService from './service/index';
+import ZebrunnerReporter from './reporter/reporter';
+const video = require('wdio-video-reporter');
+require('dotenv').config();
 
 const config = {
-  "reportingServerHostname": "<YOUR_ZEBRUNNER_SERVER_URL>",
-  "reportingServerAccessToken": "<YOUR_ZEBRUNNER_ACCESS_TOKEN>",
-  "reportingProjectKey": "DEF",
-  "reportingRunEnvironment": "STAGE",
-  "reportingRunBuild": "1.0-alpha",
-  "reportingRunDisplayName": "My regression suite1",
-  "reportingRunLocale": "en_US",
-  "reportingCiRunId": "46190073-55db-4411-ac42-fd42b7c96958",
-  "reportingSlackChannels": "",
-  "reportingEmailRecipients": "",
+  // "reportingServerHostname": "https://webdriveragent.zebrunner.dev",
+  // "reportingServerAccessToken": "hDyOHr4LVVuUW6vFaO0WqwtdSab7kKxZZWSMWDrR88l2GgdV9J",
+  // "reportingProjectKey": "DEF",
+  // "reportingRunEnvironment": "STAGE",
+  // "reportingRunBuild": "1.0-alpha",
+  // "reportingRunDisplayName": "My regression suite1",
+  // "reportingRunLocale": "en_US",
+  // "reportingCiRunId": "46190073-55db-4411-ac42-fd42b7c96958",
+  // "reportingSlackChannels": "",
+  // "reportingEmailRecipients": "",
   // "reportingTestrailEnabled": "",
   // "reportingTestrailSuiteId": "",
   // "reportingTestrailTestrunName": "",
@@ -24,6 +25,7 @@ const config = {
 }
 
 exports.config = {
+  reporterSyncInterval: 10 * 1000,
   //
   // ====================
   // Runner Configuration
@@ -76,7 +78,7 @@ exports.config = {
   //
   capabilities: [
     {
-      maxInstances: 5,
+      maxInstances: 10,
       browserName: 'chrome',
     },
   ],
@@ -127,7 +129,7 @@ exports.config = {
   // Services take over a specific job you don't want to take care of. They enhance
   // your test setup with almost no effort. Unlike plugins, they don't add new
   // commands. Instead, they hook themselves up into the test process.
-  services: ['chromedriver', [ZebrunnerService]],
+  services: ['chromedriver'],
 
   // Framework you want to run your specs with.
   // The following are supported: Mocha, Jasmine, and Cucumber
@@ -150,6 +152,11 @@ exports.config = {
   // The only one supported by default is 'dot'
   // see also: https://webdriver.io/docs/dot-reporter
   reporters: [
+    [video, {
+      saveAllVideos: true,
+      videoSlowdownMultiplier: 3,
+      outputDir: 'reporter/videos',
+    }],
     [ZebrunnerReporter, config],
   ],
 

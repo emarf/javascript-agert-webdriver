@@ -1,58 +1,38 @@
 import axios from 'axios';
-
-const jsonHeaders = {
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
-}
-
-const imageHeaders = {
-  headers: {
-    'Content-Type': 'image/png'
-  }
-}
-
-const multipartDataHeaders = {
-  headers: {
-    'Accept': '*/*'
-  }
-}
-
-class HttpClient {
+export default class HttpClient {
   constructor(configResolver) {
     this.configResolver = configResolver;
     this.baseUrl = configResolver.getReportingServerHostname();
     // set config defaults when creating the instance
     this.axiosClient = axios.create({
       baseURL: this.baseUrl,
-      headers: {}
+      headers: {},
     });
   }
 
-  async callPost(url, body, headers) {
-    try {
-      const config = {
-        headers: headers
-      }
-      const postPromise = await this.axiosClient.post(url, body, config);
-      this._positiveLog(postPromise, url, body);
-
-      return postPromise;
-    } catch (error) {
-      this._errorLog(error)
-    }
-  }
-
-  async callPut(url, body, headers, log = false, forceDisableLog = false) {
+  async fetchRequest(method, url, body, headers) {
     try {
       const config = {
         headers: headers,
       }
-      const putPromise = await this.axiosClient.put(url, body, config);
-      this._positiveLog(putPromise, url, body, log, forceDisableLog);
+
+      let response;
+
+      if (method === 'PUT') {
+        response = await this.axiosClient.put(url, body, config);
+      }
+      if (method === 'POST') {
+        response = await this.axiosClient.post(url, body, config);
+      }
+      if (method === 'DELETE') {
+        response = await this.axiosClient.delete(url, config);
+      }
+
+      this._positiveLog(response, url, body);
+
+      return response;
     } catch (error) {
-      this._positiveLog(error, forceDisableLog);
+      this._errorLog(error);
     }
   }
 
@@ -62,19 +42,13 @@ class HttpClient {
   }
 
   _errorLog(error) {
+    console.log(error.response.data)
     if (error.response) {
-      console.error(`RESPONSE ERROR: ${error.response.status} ${error.response.statusText}`)
+      console.error(`RESPONSE ERROR: ${error.response.status} ${error.response.statusText}`);
     } else if (error.data) {
-      console.error((error.data) ? error.data : error.response.data)
+      console.error((error.data) ? error.data : error.response.data);
     } else {
-      console.error(error)
+      console.error(error);
     }
   }
-}
-
-module.exports = {
-  HttpClient,
-  jsonHeaders,
-  imageHeaders,
-  multipartDataHeaders
-}
+};

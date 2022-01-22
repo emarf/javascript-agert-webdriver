@@ -1,47 +1,13 @@
 import { v4 as uuidv4 } from 'uuid';
 import ConfigResolver from './config-resolver';
+import { testrailLabels, xrayLabels, zephyrLabels } from './constants';
 
-const urls = {
-  URL_REFRESH: '/api/iam/v1/auth/refresh',
-  URL_REGISTER_RUN: '/api/reporting/v1/test-runs?projectKey=${project}',
-  URL_FINISH_RUN: '/api/reporting/v1/test-runs/',
-  URL_START_TEST: '/api/reporting/v1/test-runs/${testRunId}/tests',
-  URL_FINISH_TEST: '/api/reporting/v1/test-runs/${testRunId}/tests/${testId}',
-  URL_SEND_LOGS: '/api/reporting/v1/test-runs/${testRunId}/logs',
-  URL_SEND_SCREENSHOT: '/api/reporting/v1/test-runs/${testRunId}/tests/${testId}/screenshots',
-  URL_SET_RUN_LABELS: '/api/reporting/v1/test-runs/${testRunId}/labels',
-  URL_START_SESSION: '/api/reporting/v1/test-runs/${testRunId}/test-sessions',
-  URL_UPDATE_SESSION: '/api/reporting/v1/test-runs/${testRunId}/test-sessions/${testSessionId}',
-  URL_SEND_SESSION_ARTIFACTS: '/api/reporting/v1/test-runs/${testRunId}/test-sessions/${testSessionId}/artifacts',
-  URL_SEARCH_TESTS: '/api/reporting/api/tests/search',
-};
-
-const testrailLabels = {
-  L_SYNC_ENABLED: 'com.zebrunner.app/tcm.testrail.sync.enabled',
-  L_SYNC_REAL_TIME: 'com.zebrunner.app/tcm.testrail.sync.real-time',
-  L_INCLUDE_ALL: 'com.zebrunner.app/tcm.testrail.include-all-cases',
-  L_SUITE_ID: 'com.zebrunner.app/tcm.testrail.suite-id',
-  L_RUN_ID: 'com.zebrunner.app/tcm.testrail.run-id',
-  L_RUN_NAME: 'com.zebrunner.app/tcm.testrail.run-name',
-  L_MILESTONE: 'com.zebrunner.app/tcm.testrail.milestone',
-  L_ASSIGNEE: 'com.zebrunner.app/tcm.testrail.assignee',
-  L_CASE_ID: 'com.zebrunner.app/tcm.testrail.case-id',
-  L_SYNC_REAL_TIME: 'com.zebrunner.app/tcm.testrail.sync.real-time',
-}
-
-const xrayLabels = {
-  L_SYNC_ENABLED: 'com.zebrunner.app/tcm.xray.sync.enabled',
-  L_SYNC_REAL_TIME: 'com.zebrunner.app/tcm.xray.sync.real-time',
-  L_EXECUTION_KEY: 'com.zebrunner.app/tcm.xray.test-execution-key',
-  L_TEST_KEY: 'com.zebrunner.app/tcm.xray.test-key',
-}
 
 const getRefreshToken = (token) => {
   return {
     refreshToken: token
   };
 };
-
 
 const getTestRunStart = (suite, reporterConfig) => {
   let testRunStartBody = {
@@ -82,7 +48,7 @@ const getTestRunEnd = (test) => {
   };
 };
 
-const getTestStart = (test, additionOptions) => {
+const getTestStart = (test, additionalLabels) => {
   let testStartBody = {
     'name': test.title,
     'startedAt': test.start,
@@ -90,30 +56,30 @@ const getTestStart = (test, additionOptions) => {
     'methodName': test.title,
     'labels': []
   };
-
-  if (additionOptions) {
-    if (additionOptions.owner) {
-      console.debug(`Test owner ${additionOptions.owner} was set for the test "${test.title}"`);
-      testStartBody.maintainer = additionOptions.owner;
-    }
-    if (additionOptions.testrailTestCaseId) {
-      if (Array.isArray(additionOptions.testrailTestCaseId)) {
-        additionOptions.testrailTestCaseId.forEach((caseId) => {
-          testStartBody.labels.push({ 'key': testrailLabels.L_CASE_ID, 'value': caseId });
-        })
-      } else {
-        testStartBody.labels.push({ 'key': testrailLabels.L_CASE_ID, 'value': additionOptions.testrailTestCaseId })
-      }
-    }
-    if (additionOptions.xrayTestKey) {
-      if (additionOptions.xrayTestKey instanceof Array) {
-        additionOptions.xrayTestKey.forEach(caseId => {
-          testStartBody.labels.push({ 'key': xrayLabels.L_TEST_KEY, 'value': caseId })
-        });
-      } else {
-        testStartBody.labels.push({ 'key': xrayLabels.L_TEST_KEY, 'value': additionOptions.xrayTestKey })
-      }
-    }
+  console.log(testStartBody);
+  if (additionalLabels.maintainer) {
+    console.debug(`Test owner ${additionalLabels.maintainer} was set for the test "${test.title}"`);
+    testStartBody.maintainer = additionalLabels.maintainer;
+  }
+  if (additionalLabels.testrailConfig.caseId) {
+    additionalLabels.testrailConfig.caseId.value.forEach((testrailId) => {
+      testStartBody.labels.push({ key: additionalLabels.testrailConfig.caseId.key, value: testrailId });
+    })
+  }
+  if (additionalLabels.xrayConfig.testKey) {
+    additionalLabels.xrayConfig.testKey.value.forEach((xrayId) => {
+      testStartBody.labels.push({ key: additionalLabels.xrayConfig.testKey.key, value: xrayId });
+    })
+  }
+  if (additionalLabels.zephyrConfig.testCaseKey) {
+    additionalLabels.zephyrConfig.testCaseKey.value.forEach((zephyrId) => {
+      testStartBody.labels.push({ key: additionalLabels.zephyrConfig.testCaseKey.key, value: zephyrId });
+    })
+  }
+  if (additionalLabels.testLabels) {
+    additionalLabels.testLabels.forEach((label) => {
+      testStartBody.labels.push({ key: label.key, value: label.value })
+    })
   }
   return testStartBody;
 };
@@ -143,41 +109,39 @@ const getTestSessionEnd = (testStats, zbrTestId) => {
   };
 };
 
-const getTestRunLabels = (reporterOptions) => {
-  var testRunLabelsBody = {
+const getTestRunLabels = (reporterOptions, additionalOptions) => {
+  let testRunLabelsBody = {
     'items': []
   };
   if (reporterOptions.reportingRunLocale) {
     testRunLabelsBody.items.push({ 'key': 'com.zebrunner.app/sut.locale', 'value': reporterOptions.reportingRunLocale })
   }
-  if (reporterOptions.reportingTestrailEnabled) {
-    if (reporterOptions.reportingTestrailEnabled) {
-      testRunLabelsBody.items.push({ 'key': testrailLabels.L_SYNC_ENABLED, 'value': reporterOptions.reportingTestrailEnabled })
-    }
-    if (reporterOptions.reportingTestrailSuiteId) {
-      testRunLabelsBody.items.push({ 'key': testrailLabels.L_SUITE_ID, 'value': reporterOptions.reportingTestrailSuiteId })
-    }
-    if (reporterOptions.reportingTestrailTestrunID) {
-      testRunLabelsBody.items.push({ 'key': testrailLabels.L_RUN_ID, 'value': reporterOptions.reportingTestrailTestrunID })
-    }
-    if (reporterOptions.reportingTestrailTestrunName) {
-      testRunLabelsBody.items.push({ 'key': testrailLabels.L_RUN_NAME, 'value': reporterOptions.reportingTestrailTestrunName })
-    }
-    if (reporterOptions.reportingTestrailMilestone) {
-      testRunLabelsBody.items.push({ 'key': testrailLabels.L_MILESTONE, 'value': reporterOptions.reportingTestrailMilestone })
-    }
-    if (reporterOptions.reportingTestrailAssignee) {
-      testRunLabelsBody.items.push({ 'key': testrailLabels.L_ASSIGNEE, 'value': reporterOptions.reportingTestrailAssignee })
-    }
-    if (reporterOptions.reportingTestrailIncludeAll) {
-      testRunLabelsBody.items.push({ 'key': testrailLabels.L_INCLUDE_ALL, 'value': reporterOptions.reportingTestrailIncludeAll })
-    }
+
+  if (additionalOptions.testrailConfig && additionalOptions.testrailConfig.enableSync.value === 'true') {
+    Object.keys(additionalOptions.testrailConfig).forEach((item) => {
+      if (additionalOptions.testrailConfig[item].key !== testrailLabels.CASE_ID && additionalOptions.testrailConfig[item].value) {
+        testRunLabelsBody.items.push(additionalOptions.testrailConfig[item])
+      }
+    })
   }
-  if (reporterOptions.reportingXrayEnabled) {
-    testRunLabelsBody.items.push({ 'key': xrayLabels.L_SYNC_ENABLED, 'value': reporterOptions.reportingXrayEnabled })
-    if (reporterOptions.reportingXrayTestExecutionKey) {
-      testRunLabelsBody.items.push({ 'key': xrayLabels.L_EXECUTION_KEY, 'value': reporterOptions.reportingXrayTestExecutionKey })
-    }
+  if (additionalOptions.xrayConfig && additionalOptions.xrayConfig.enableSync.value === 'true') {
+    Object.keys(additionalOptions.xrayConfig).forEach((item) => {
+      if (additionalOptions.xrayConfig[item].key !== xrayLabels.TEST_KEY && additionalOptions.xrayConfig[item].value) {
+        testRunLabelsBody.items.push(additionalOptions.xrayConfig[item])
+      }
+    })
+  }
+  if (additionalOptions.zephyrConfig && additionalOptions.zephyrConfig.enableSync.value === 'true') {
+    Object.keys(additionalOptions.zephyrConfig).forEach((item) => {
+      if (additionalOptions.zephyrConfig[item].key !== zephyrLabels.TEST_CASE_KEY && additionalOptions.zephyrConfig[item].value) {
+        testRunLabelsBody.items.push(additionalOptions.zephyrConfig[item])
+      }
+    })
+  }
+  if (additionalOptions.runLabels) {
+    additionalOptions.runLabels.forEach((label) => {
+      testRunLabelsBody.items.push({ key: label.key, value: label.value })
+    })
   }
 
   return testRunLabelsBody;
@@ -192,7 +156,6 @@ const getTestsSearch = (testRunId) => {
 };
 
 module.exports = {
-  urls,
   getRefreshToken,
   getTestRunStart,
   getTestRunEnd,
@@ -201,5 +164,5 @@ module.exports = {
   getTestSessionStart,
   getTestSessionEnd,
   getTestRunLabels,
-  getTestsSearch
+  getTestsSearch,
 }
