@@ -8,6 +8,7 @@ import {
   getTestSessionStart,
   getTestSessionEnd,
   getTestRunLabels,
+  getTestLabels,
   getTestsSearch,
 } from './request-builder';
 import {
@@ -80,11 +81,11 @@ class ZebrunnerApiClient {
     }
   }
 
-  async startTest(test, additionalLabels) {
+  async startTest(test, maintainer) {
     try {
       if (this.runStats.runId) {
         const url = urls.URL_START_TEST.replace('${testRunId}', this.runStats.runId);
-        const testStartBody = getTestStart(test, additionalLabels);
+        const testStartBody = getTestStart(test, maintainer);
         const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
         const response = await this.httpClient.fetchRequest('POST', url, testStartBody, headers);
         this.runStats.zbrTestId = response.data.id;
@@ -164,12 +165,12 @@ class ZebrunnerApiClient {
     }
   }
 
-  async sendRunLabels(additionalOptions) {
+  async sendRunLabels(tcmConfig) {
     try {
       const url = urls.URL_SET_RUN_LABELS.replace('${testRunId}', this.runStats.runId)
       const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
-      const runLabels = getTestRunLabels(this.reporterConfig.reporterOptions, additionalOptions);
-      console.log(runLabels);
+      const runLabels = getTestRunLabels(this.reporterConfig.reporterOptions, tcmConfig);
+
       if (runLabels.items.length > 0) {
         await this.httpClient.fetchRequest('PUT', url, runLabels, headers);
         console.log(`Labels were send for run id ${this.runStats.runId}`);
@@ -178,6 +179,18 @@ class ZebrunnerApiClient {
       }
     } catch (e) {
       console.log(e)
+    }
+  }
+
+  async sendTestLabels(testId, options) {
+    try {
+      const url = urls.URL_SET_TEST_LABELS.replace('${testRunId}', this.runStats.runId).replace('${testId}', testId);
+      const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
+      const payload = getTestLabels(options);
+      const response = await this.httpClient.fetchRequest('PUT', url, payload, headers);
+      return response;
+    } catch (e) {
+      console.log(e);
     }
   }
 

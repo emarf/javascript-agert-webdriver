@@ -48,39 +48,15 @@ const getTestRunEnd = (test) => {
   };
 };
 
-const getTestStart = (test, additionalLabels) => {
+const getTestStart = (test, maintainer) => {
   let testStartBody = {
     'name': test.title,
     'startedAt': test.start,
     'className': test.fullTitle,
+    'maintainer': maintainer ? maintainer : 'anonymous',
     'methodName': test.title,
-    'labels': []
   };
-  console.log(testStartBody);
-  if (additionalLabels.maintainer) {
-    console.debug(`Test owner ${additionalLabels.maintainer} was set for the test "${test.title}"`);
-    testStartBody.maintainer = additionalLabels.maintainer;
-  }
-  if (additionalLabels.testrailConfig.caseId) {
-    additionalLabels.testrailConfig.caseId.value.forEach((testrailId) => {
-      testStartBody.labels.push({ key: additionalLabels.testrailConfig.caseId.key, value: testrailId });
-    })
-  }
-  if (additionalLabels.xrayConfig.testKey) {
-    additionalLabels.xrayConfig.testKey.value.forEach((xrayId) => {
-      testStartBody.labels.push({ key: additionalLabels.xrayConfig.testKey.key, value: xrayId });
-    })
-  }
-  if (additionalLabels.zephyrConfig.testCaseKey) {
-    additionalLabels.zephyrConfig.testCaseKey.value.forEach((zephyrId) => {
-      testStartBody.labels.push({ key: additionalLabels.zephyrConfig.testCaseKey.key, value: zephyrId });
-    })
-  }
-  if (additionalLabels.testLabels) {
-    additionalLabels.testLabels.forEach((label) => {
-      testStartBody.labels.push({ key: label.key, value: label.value })
-    })
-  }
+
   return testStartBody;
 };
 
@@ -109,44 +85,43 @@ const getTestSessionEnd = (testStats, zbrTestId) => {
   };
 };
 
-const getTestRunLabels = (reporterOptions, additionalOptions) => {
+const getTestRunLabels = (reporterOptions, options) => {
   let testRunLabelsBody = {
-    'items': []
+    items: []
   };
+
   if (reporterOptions.reportingRunLocale) {
     testRunLabelsBody.items.push({ 'key': 'com.zebrunner.app/sut.locale', 'value': reporterOptions.reportingRunLocale })
   }
 
-  if (additionalOptions.testrailConfig && additionalOptions.testrailConfig.enableSync.value === 'true') {
-    Object.keys(additionalOptions.testrailConfig).forEach((item) => {
-      if (additionalOptions.testrailConfig[item].key !== testrailLabels.CASE_ID && additionalOptions.testrailConfig[item].value) {
-        testRunLabelsBody.items.push(additionalOptions.testrailConfig[item])
-      }
+  if (options) {
+    Object.keys(options).forEach((el) => {;
+      Object.keys(options[el]).forEach((key) => {
+        testRunLabelsBody.items.push(options[el][key])
+      })
     })
   }
-  if (additionalOptions.xrayConfig && additionalOptions.xrayConfig.enableSync.value === 'true') {
-    Object.keys(additionalOptions.xrayConfig).forEach((item) => {
-      if (additionalOptions.xrayConfig[item].key !== xrayLabels.TEST_KEY && additionalOptions.xrayConfig[item].value) {
-        testRunLabelsBody.items.push(additionalOptions.xrayConfig[item])
-      }
-    })
-  }
-  if (additionalOptions.zephyrConfig && additionalOptions.zephyrConfig.enableSync.value === 'true') {
-    Object.keys(additionalOptions.zephyrConfig).forEach((item) => {
-      if (additionalOptions.zephyrConfig[item].key !== zephyrLabels.TEST_CASE_KEY && additionalOptions.zephyrConfig[item].value) {
-        testRunLabelsBody.items.push(additionalOptions.zephyrConfig[item])
-      }
-    })
-  }
-  if (additionalOptions.runLabels) {
-    additionalOptions.runLabels.forEach((label) => {
-      testRunLabelsBody.items.push({ key: label.key, value: label.value })
-    })
-  }
+
+  // if (additionalOptions.runLabels) {
+  //   additionalOptions.runLabels.forEach((label) => {
+  //     testRunLabelsBody.items.push({ key: label.key, value: label.value })
+  //   })
+  // }
 
   return testRunLabelsBody;
 };
 
+const getTestLabels = (options) => {
+  const obj = {
+    items: [],
+  }
+
+  options.forEach((tcmOptions) => {
+    obj.items.push(tcmOptions);
+  })
+
+  return obj;
+}
 const getTestsSearch = (testRunId) => {
   return {
     'page': 1,
@@ -164,5 +139,6 @@ module.exports = {
   getTestSessionStart,
   getTestSessionEnd,
   getTestRunLabels,
+  getTestLabels,
   getTestsSearch,
 }

@@ -1,8 +1,6 @@
 import WDIOReporter from '@wdio/reporter'
 import ZebrunnerApiClient from './zebr-api-client';
-import { parseDate, getBrowserCapabilities } from './utils';
-const path = require('path');
-const fs = require('fs')
+import { parseDate, getBrowserCapabilities, parseTcmRunOptions, parseTcmTestOptions } from './utils';
 
 export default class ZebrunnerReporter extends WDIOReporter {
   constructor(reporterConfig) {
@@ -14,28 +12,13 @@ export default class ZebrunnerReporter extends WDIOReporter {
     this.runId;
     this.currentTestId;
     this.logs = [];
-    // options that can change every run
-    this.testAdditionalLabels = {
-      maintainer: '',
-      testrailConfig: {
-        caseId: '',
-      },
-      xrayConfig: {
-        testKey: '',
-      },
-      zephyrConfig: {
-        testCaseKey: '',
-      },
-      testLabels: '',
-    };
-    this.additionalOptions = {
-      runArtifacts: '',
-      testArtifacts: '',
-      testrailConfig: '',
-      xrayConfig: '',
-      zephyrConfig: '',
-      runLabels: '',
+    this.runOptions = {
+      tcmConfig: {},
     }
+    this.currentTestOptions = {
+      maintainer: '',
+      testTcmOptions: [],
+    };
     this.promiseFinish = [];
     this.registerServicesListeners();
     this.tests;
@@ -48,13 +31,12 @@ export default class ZebrunnerReporter extends WDIOReporter {
     process.on("SET_MAINTAINER", this.setMaintainer.bind(this));
     process.on("SET_RUN_ARTIFACTS", this.setRunArtifactsAttachments.bind(this));
     process.on("SET_TEST_ARTIFACTS", this.setTestArtifactAttachments.bind(this));
-    process.on("SET_TESTRAIL_CONFIG", this.setTestrailConfig.bind(this));
-    process.on("SET_XRAY_CONFIG", this.setXrayConfig.bind(this));
-    process.on("SET_ZEPHYR_CONFIG", this.setZephyrConfig.bind(this));
     process.on("SET_RUN_LABELS", this.setRunLabels.bind(this));
     process.on("SET_TEST_LABELS", this.setTestLabels.bind(this));
     process.on("SET_TEST_LOGS", this.setTestLogs.bind(this));
     process.on("REVERT_TEST_REGISTRATION", this.revertTestRegistration.bind(this));
+    process.on("SET_RUN_TCM_OPTIONS", this.setRunTcmOptions.bind(this));
+    process.on("SET_TEST_TCM_OPTIONS", this.setTestTcmOptions.bind(this));
   }
 
   get isSynchronised() {
@@ -138,10 +120,11 @@ export default class ZebrunnerReporter extends WDIOReporter {
 
   async sendRunAttachments() {
     await Promise.all([
-      this.zebrunnerApiClient.sendRunArtifacts(this.additionalOptions),
-      this.zebrunnerApiClient.sendRunArtifactReferences(this.additionalOptions),
-      this.zebrunnerApiClient.sendRunLabels(this.additionalOptions),
+      // this.zebrunnerApiClient.sendRunArtifacts(this.additionalOptions),
+      // this.zebrunnerApiClient.sendRunArtifactReferences(this.additionalOptions),
+      this.zebrunnerApiClient.sendRunLabels(this.runOptions.tcmConfig),
     ])
+
   }
 
   onAfterCommand(command) {
@@ -160,7 +143,7 @@ export default class ZebrunnerReporter extends WDIOReporter {
     this.runId.then(() => {
       try {
         Promise.all([
-          this.zebrunnerApiClient.startTest(testStats, this.testAdditionalLabels),
+          this.zebrunnerApiClient.startTest(testStats, this.currentTestOptions.maintainer),
           this.zebrunnerApiClient.startTestSession(testStats, this.browserCapabilities),
         ]).then((res) => {
           if (this.isRevert) {
@@ -169,7 +152,16 @@ export default class ZebrunnerReporter extends WDIOReporter {
           }
           this.allTests.push(res[0])
           this.currentTestId = res[0];
-          this.sendTestArtifacts(this.additionalOptions, this.currentTestId);
+
+          if (this.currentTestOptions.testTcmOptions.length > 0) {
+            this.zebrunnerApiClient.sendTestLabels(this.currentTestId, this.currentTestOptions.testTcmOptions);
+          } 
+          // this.sendTestArtifacts(this.additionalOptions, this.currentTestId);
+
+          this.currentTestOptions = {
+            maintainer: '',
+            testTcmOptions: [],
+          };
         })
       } catch (e) {
         console.log(e);
@@ -180,19 +172,6 @@ export default class ZebrunnerReporter extends WDIOReporter {
   sendTestArtifacts(options, testId) {
     this.zebrunnerApiClient.sendTestArtifacts(options, testId);
     this.zebrunnerApiClient.sendTestArtifactReferences(options, testId);
-    this.testAdditionalLabels = {
-      maintainer: '',
-      testrailConfig: {
-        caseId: '',
-      },
-      xrayConfig: {
-        testKey: '',
-      },
-      zephyrConfig: {
-        testCaseKey: '',
-      },
-      testLabels: '',
-    };
   }
 
   // saveAndSendFailedScreenshot(testId, testStats) {
@@ -209,8 +188,16 @@ export default class ZebrunnerReporter extends WDIOReporter {
   // }
 
   setMaintainer(maintainer) {
-    console.log('maintainer');
-    this.testAdditionalLabels.maintainer = maintainer;
+    this.currentTestOptions.maintainer = maintainer;
+  }
+
+  setTestTcmOptions(options) {
+    const testTcmOptions = parseTcmTestOptions(options, this.runOptions.tcmConfig)
+    this.currentTestOptions.testTcmOptions = testTcmOptions;
+  }
+
+  setRunTcmOptions(options) {
+    this.runOptions.tcmConfig = parseTcmRunOptions(options);
   }
 
   setRunArtifactsAttachments(artifacts) {
@@ -221,25 +208,6 @@ export default class ZebrunnerReporter extends WDIOReporter {
   setTestArtifactAttachments(artifacts) {
     console.log('test artifacts');
     this.additionalOptions.testArtifacts = artifacts;
-  }
-
-  setTestrailConfig(testrailConfig) {
-    console.log('testrail config');
-    this.additionalOptions.testrailConfig = testrailConfig;
-    this.testAdditionalLabels.testrailConfig.caseId = testrailConfig.caseId;
-  }
-
-  setXrayConfig(xrayConfig) {
-    console.log('xray config');
-    console.log(xrayConfig);
-    this.additionalOptions.xrayConfig = xrayConfig;
-    this.testAdditionalLabels.xrayConfig.testKey = xrayConfig.testKey;
-  }
-
-  setZephyrConfig(zephyrConfig) {
-    console.log('zephyr config');
-    this.additionalOptions.zephyrConfig = zephyrConfig;
-    this.testAdditionalLabels.zephyrConfig.testCaseKey = zephyrConfig.testCaseKey;
   }
 
   setRunLabels(labels) {
@@ -263,6 +231,8 @@ export default class ZebrunnerReporter extends WDIOReporter {
     console.log('revert test');
     this.isRevert = true;
   }
+
+  
 
   createLogs(testId, testStats) {
     const logsForTest = [];
