@@ -8,15 +8,6 @@ export const reporterEmitter = {
   setTestArtifactAttachments: (testArtifacts) => {
     process.emit('SET_TEST_ARTIFACTS', testArtifacts)
   },
-  setTestrailConfig: (testRailConfig) => {
-    process.emit('SET_TESTRAIL_CONFIG', testRailConfig);
-  },
-  setXrayConfig: (xrayConfig) => {
-    process.emit('SET_XRAY_CONFIG', xrayConfig)
-  },
-  setZephyrConfig: (zephyrConfig) => {
-    process.emit('SET_ZEPHYR_CONFIG', zephyrConfig)
-  },
   setRunLabels: (labels) => {
     process.emit('SET_RUN_LABELS', labels)
   },
@@ -29,4 +20,10 @@ export const reporterEmitter = {
   revertTestRegistration: () => {
     process.emit('REVERT_TEST_REGISTRATION',)
   },
-}
+  setRunTcmOptions: (options) => {
+    process.emit('SET_RUN_TCM_OPTIONS', options);
+  },
+  setTestTcmOptions: (options) => {
+    process.emit('SET_TEST_TCM_OPTIONS', options);
+  },
+};

@@ -37,8 +37,7 @@ export default class HttpClient {
   }
 
   _positiveLog(promise, url) {
-    console.log(`POST relative url: ${url}`);
-    console.log(`RESPONSE status: ${promise.status}`);
+    console.log(`POST relative url: ${url} with status: ${promise.status}`);
   }
 
   _errorLog(error) {
