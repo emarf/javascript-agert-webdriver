@@ -1,17 +1,4 @@
-// import Artifacts from '../../reporter/services/artifacts';
-// import Labels from '../../reporter/services/labels';
-// import Logger from '../../reporter/services/logger';
-// import Testrail from '../../reporter/services/testrail';
-import Xray from '../../reporter/services/xray';
-// import Zephyr from '../../reporter/services/zephyr';
 import { reporterEmitter } from '../../reporter/reporterEmitter';
-
-// const artifacts = new Artifacts();
-// const testrail = new Testrail();
-// const xray = new Xray();
-// const zephyr = new Zephyr();
-// const label = new Labels();
-// const logger = new Logger();
 
 describe('Ebay Product Search', () => {
   // artifacts.attachToTestRun(['runEBAY.txt', '/artifactsFiles']);
@@ -46,16 +33,18 @@ describe('Ebay Product Search', () => {
         // zephyrEnableRealTimeSync: true,
       } 
     ]
-    reporterEmitter.setRunTcmOptions(tcmRunOptions);
 
-    // testrail.setSuiteId('EBAYtestrailsuiteId1');
-    // testrail.setAssignee('EBAYJohntestrailassignee1');
-    // testrail.setMilestone('EBAYtestrailmilestone1');
-    // testrail.setRunName('EBAYMarktesttrailrunName1');
-    // testrail.setRunId('EBAY123testrailrunId1');
-    // xray.setExecutionKey('EBAYZBR-42xrayexecutionKey1');
-    // zephyr.setTestCycleKey('EBAYzephyrcycleKey1');
-    // zephyr.setJiraProjectKey('EBAYzephyrjiraKey1');
+    reporterEmitter.setRunTcmOptions(tcmRunOptions);
+    reporterEmitter.setRunLabels({
+      Chrome: "85.0",
+      version: 'test',
+    })
+    // reporterEmitter.attachToTestRun(['runEBAY.txt','runWDIO.txt'])
+    // reporterEmitter.attachReferenceToTestRun([{
+    //   name: 'run attach',
+    //   value: 'https://www.youtube.com'
+    // }])
+
   })
 
   it('should verify title search laptop and verify title', async () => {
@@ -79,6 +68,9 @@ describe('Ebay Product Search', () => {
     ];
     reporterEmitter.setMaintainer('emarf');
     reporterEmitter.setTestTcmOptions(tcmTestOptions);
+    reporterEmitter.setTestLabels({
+      Author: 'Deve Loper',
+    });
     
     // testrail.setCaseId(['EBAYtestrail1', 'EBAYtestrail2']);
     // reporterEmitter.setTestrailConfig(testrail.getTestrailConfig());
@@ -120,18 +112,9 @@ describe('Ebay Product Search', () => {
     // reporterEmitter.setTestArtifactAttachments(artifacts.getTestAttachments());
 
     // reporterEmitter.setMaintainer('emarf');
-
-    // testrail.setCaseId(['EBAYtestrail3', 'EBAYtestrail4']);
-    // reporterEmitter.setTestrailConfig(testrail.getTestrailConfig());
-
-    // xray.setTestKey(['EBAYxray3', 'EBAYxray4']);
-    // reporterEmitter.setXrayConfig(xray.getXrayConfig());
-
-    // zephyr.setTestCaseKey(['1', '2']);
-    // reporterEmitter.setZephyrConfig(zephyr.getZephyrConfig());
-
-    // label.setTestLabel(['ForTest', 'Ebay test 2']);
-    // reporterEmitter.setTestLabels(label.getTestLabels());
+    reporterEmitter.setTestLabels({
+      Author: 'simple',
+    });
 
     const searchInput = $('#gh-ac');
     const searchBtn = $('#gh-btn');

@@ -2,6 +2,7 @@ export const reporterEmitter = {
   setMaintainer: (maintainer) => {
     process.emit('SET_MAINTAINER', maintainer)
   },
+  
   setRunArtifactAttachments: (runArtifacts) => {
     process.emit('SET_RUN_ARTIFACTS', runArtifacts)
   },
