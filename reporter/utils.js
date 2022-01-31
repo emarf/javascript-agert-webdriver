@@ -289,6 +289,16 @@ const parseTcmTestOptions = (data, tcmConfig) => {
   }).flat();
 };
 
+const parseLabels = (labels) => {
+  const arr = [];
+  Object.keys(labels).forEach((key) => {
+    arr.push({key: key, value: labels[key]});
+  })
+
+  return arr;
+}
+
+
 
 export {
   logObject,
@@ -302,4 +312,5 @@ export {
   getFileSizeInBytes,
   parseTcmRunOptions,
   parseTcmTestOptions,
+  parseLabels,
 }

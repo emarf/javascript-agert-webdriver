@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
 import ConfigResolver from './config-resolver';
-import { testrailLabels, xrayLabels, zephyrLabels } from './constants';
 
 
 const getRefreshToken = (token) => {
@@ -11,12 +10,12 @@ const getRefreshToken = (token) => {
 
 const getTestRunStart = (suite, reporterConfig) => {
   let testRunStartBody = {
-    'uuid': uuidv4(),
-    'name': suite.title,
-    'startedAt': suite.start,
-    'framework': 'wdio',
-    'config': {},
-    'notificationTargets': []
+    uuid: uuidv4(),
+    name: suite.title,
+    startedAt: suite.start,
+    framework: 'wdio',
+    config: {},
+    notificationTargets: []
   };
   let configResolver = new ConfigResolver(reporterConfig)
 
@@ -86,7 +85,7 @@ const getTestSessionEnd = (testStats, zbrTestId) => {
 };
 
 const getTestRunLabels = (reporterOptions, options) => {
-  let testRunLabelsBody = {
+  const testRunLabelsBody = {
     items: []
   };
 
@@ -94,19 +93,19 @@ const getTestRunLabels = (reporterOptions, options) => {
     testRunLabelsBody.items.push({ 'key': 'com.zebrunner.app/sut.locale', 'value': reporterOptions.reportingRunLocale })
   }
 
-  if (options) {
-    Object.keys(options).forEach((el) => {;
-      Object.keys(options[el]).forEach((key) => {
-        testRunLabelsBody.items.push(options[el][key])
+  if (options.tcmConfig) {
+    Object.keys(options.tcmConfig).forEach((el) => {;
+      Object.keys(options.tcmConfig[el]).forEach((key) => {
+        testRunLabelsBody.items.push(options.tcmConfig[el][key])
       })
     })
   }
 
-  // if (additionalOptions.runLabels) {
-  //   additionalOptions.runLabels.forEach((label) => {
-  //     testRunLabelsBody.items.push({ key: label.key, value: label.value })
-  //   })
-  // }
+  if (options.labels.length > 0) {
+    options.labels.forEach((el) => {
+      testRunLabelsBody.items.push(el);
+    })
+  }
 
   return testRunLabelsBody;
 };
@@ -116,9 +115,17 @@ const getTestLabels = (options) => {
     items: [],
   }
 
-  options.forEach((tcmOptions) => {
-    obj.items.push(tcmOptions);
-  })
+  if (options.testTcmOptions.length > 0) {
+    options.testTcmOptions.forEach((tcmOptions) => {
+      obj.items.push(tcmOptions);
+    })
+  }
+
+  if (options.labels.length > 0) {
+    options.labels.forEach((tcmOptions) => {
+      obj.items.push(tcmOptions);
+    })
+  }
 
   return obj;
 }

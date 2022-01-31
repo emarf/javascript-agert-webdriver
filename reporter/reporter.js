@@ -1,6 +1,6 @@
 import WDIOReporter from '@wdio/reporter'
 import ZebrunnerApiClient from './zebr-api-client';
-import { parseDate, getBrowserCapabilities, parseTcmRunOptions, parseTcmTestOptions } from './utils';
+import { parseDate, getBrowserCapabilities, parseTcmRunOptions, parseTcmTestOptions, parseLabels } from './utils';
 
 export default class ZebrunnerReporter extends WDIOReporter {
   constructor(reporterConfig) {
@@ -14,10 +14,12 @@ export default class ZebrunnerReporter extends WDIOReporter {
     this.logs = [];
     this.runOptions = {
       tcmConfig: {},
+      labels: [],
     }
     this.currentTestOptions = {
       maintainer: '',
       testTcmOptions: [],
+      labels: [],
     };
     this.promiseFinish = [];
     this.registerServicesListeners();
@@ -122,7 +124,7 @@ export default class ZebrunnerReporter extends WDIOReporter {
     await Promise.all([
       // this.zebrunnerApiClient.sendRunArtifacts(this.additionalOptions),
       // this.zebrunnerApiClient.sendRunArtifactReferences(this.additionalOptions),
-      this.zebrunnerApiClient.sendRunLabels(this.runOptions.tcmConfig),
+      this.zebrunnerApiClient.sendRunLabels(this.runOptions),
     ])
 
   }
@@ -153,14 +155,13 @@ export default class ZebrunnerReporter extends WDIOReporter {
           this.allTests.push(res[0])
           this.currentTestId = res[0];
 
-          if (this.currentTestOptions.testTcmOptions.length > 0) {
-            this.zebrunnerApiClient.sendTestLabels(this.currentTestId, this.currentTestOptions.testTcmOptions);
-          } 
+          this.zebrunnerApiClient.sendTestLabels(this.currentTestId, this.currentTestOptions);
           // this.sendTestArtifacts(this.additionalOptions, this.currentTestId);
 
           this.currentTestOptions = {
             maintainer: '',
             testTcmOptions: [],
+            labels: [],
           };
         })
       } catch (e) {
@@ -211,13 +212,13 @@ export default class ZebrunnerReporter extends WDIOReporter {
   }
 
   setRunLabels(labels) {
-    console.log('run labels');
-    this.additionalOptions.runLabels = labels;
+    this.runOptions.labels = parseLabels(labels);
+    console.log('run labels', this.runOptions.labels);
   }
 
   setTestLabels(labels) {
-    console.log('test labels');
-    this.testAdditionalLabels.testLabels = labels;
+    this.currentTestOptions.labels = parseLabels(labels);
+    console.log('test labels', this.currentTestOptions.labels)
   }
 
   setTestLogs(logs) {
@@ -231,8 +232,6 @@ export default class ZebrunnerReporter extends WDIOReporter {
     console.log('revert test');
     this.isRevert = true;
   }
-
-  
 
   createLogs(testId, testStats) {
     const logsForTest = [];

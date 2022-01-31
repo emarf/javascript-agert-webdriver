@@ -165,11 +165,11 @@ class ZebrunnerApiClient {
     }
   }
 
-  async sendRunLabels(tcmConfig) {
+  async sendRunLabels(options) {
     try {
       const url = urls.URL_SET_RUN_LABELS.replace('${testRunId}', this.runStats.runId)
       const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
-      const runLabels = getTestRunLabels(this.reporterConfig.reporterOptions, tcmConfig);
+      const runLabels = getTestRunLabels(this.reporterConfig.reporterOptions, options);
 
       if (runLabels.items.length > 0) {
         await this.httpClient.fetchRequest('PUT', url, runLabels, headers);
@@ -187,8 +187,12 @@ class ZebrunnerApiClient {
       const url = urls.URL_SET_TEST_LABELS.replace('${testRunId}', this.runStats.runId).replace('${testId}', testId);
       const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
       const payload = getTestLabels(options);
-      const response = await this.httpClient.fetchRequest('PUT', url, payload, headers);
-      return response;
+      if (payload.items.length > 0) {
+        const response = await this.httpClient.fetchRequest('PUT', url, payload, headers);
+        return response;
+      } else {
+        console.log(`No labels for test ${testId}`)
+      }
     } catch (e) {
       console.log(e);
     }
