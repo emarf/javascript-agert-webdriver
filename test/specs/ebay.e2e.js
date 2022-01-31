@@ -40,7 +40,7 @@ describe('Ebay Product Search', () => {
         // testRailEnableRealTimeSync: true,
       },
       {
-        zephyrTestCycleKey: 'zephyr123',
+        // zephyrTestCycleKey: 'zephyr123',
         zephyrJiraProjectKey: 'zephyr321',
         // zephyrDisableSync: true,
         // zephyrEnableRealTimeSync: true,
