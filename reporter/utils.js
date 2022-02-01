@@ -34,13 +34,19 @@ const _addZero = (value) => {
 };
 
 const getTestArtifacts = (attach) => {
-  const array = attach.reduce((acc, el) => [...acc, { fileName: el[0], filePath: el[1] }], []);
-  return array.map((item) => {
-    const filePath = path.join(__dirname, item.filePath, item.fileName);
-    const formData = new FormData();
-    formData.append('file', fs.createReadStream(filePath));
-    return formData;
-  });
+  const arr = [];
+  const dir = path.join(__dirname, '../artifacts');
+  const files = fs.readdirSync(dir);
+
+  files.forEach((el) => {
+    if (attach.includes(el)) {
+      const filePath = path.join(dir, el);
+      const formData = new FormData();
+      formData.append('file', fs.createReadStream(filePath));
+      arr.push(formData);
+    }
+  })
+  return arr;
 }
 
 const getArtifactReferences = (references) => {

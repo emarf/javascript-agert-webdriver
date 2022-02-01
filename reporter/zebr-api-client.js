@@ -235,17 +235,21 @@ class ZebrunnerApiClient {
     return response;
   }
 
-  async sendTestArtifacts(additionalOptions, testId) {
+  async sendTestArtifacts(testId, options) {
     const url = urls.URL_SEND_TEST_ARTIFACTS.replace('${testRunId}', this.runStats.runId).replace('${testId}', testId);
-    if (additionalOptions.testArtifacts.attachToTest) {
-      await this._attachmentBody(url, additionalOptions.testArtifacts.attachToTest, testId);
+    if (options.attachments.length > 0) {
+      await this._attachmentBody(url, options.attachments, testId);
+    } else {
+      console.log(`No files for test ${testId}`);
     }
   }
 
-  async sendRunArtifacts(additionalOptions) {
+  async sendRunArtifacts(options) {
     const url = urls.URL_SEND_RUN_ARTIFACTS.replace('${testRunId}', this.runStats.runId);
-    if (additionalOptions.runArtifacts.attachToTestRun) {
-      await this._attachmentBody(url, additionalOptions.runArtifacts.attachToTestRun);
+    if (options.attachments.length > 0) {
+      await this._attachmentBody(url, options.attachments);
+    } else {
+      console.log(`No files for run ${this.runStats.runId}`);
     }
   }
 
@@ -259,23 +263,27 @@ class ZebrunnerApiClient {
     })
   }
 
-  async sendTestArtifactReferences(additionalOptions, testId) {
+  async sendTestArtifactReferences(testId, options) {
     const url = urls.URL_SEND_TEST_ARTIFACT_REFERENCES.replace('${testRunId}', this.runStats.runId).replace('${testId}', testId);
-    if (additionalOptions.testArtifacts.attachReferenceToTest) {
-      await this._referenceBody(url, additionalOptions.testArtifacts.attachReferenceToTest);
+    if (options.references.length > 0) {
+      await this._referenceBody(url, options.references);
+    } else {
+      console.log(`No ref for test ${testId}`);
     }
   }
 
-  async sendRunArtifactReferences(additionalOptions) {
+  async sendRunArtifactReferences(options) {
     const url = urls.URL_SEND_RUN_ARTIFACT_REFERENCES.replace('${testRunId}', this.runStats.runId);
-    if (additionalOptions.runArtifacts.attachReferenceToTestRun) {
-      await this._referenceBody(url, additionalOptions.runArtifacts.attachReferenceToTestRun);
+    if (options.references.length > 0) {
+      await this._referenceBody(url, options.references);
+    } else {
+      console.log(`No ref to run ${this.runStats.runId}`)
     }
   }
 
-  async _referenceBody(url, additionalOptions, testId = '') {
+  async _referenceBody(url, options, testId = '') {
     const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
-    const attachLinks = getArtifactReferences(additionalOptions);
+    const attachLinks = getArtifactReferences(options);
     await this.httpClient.fetchRequest('PUT', url, attachLinks, headers);
     console.log(`References attach to ${testId ? `test ${testId}` : `run ${this.runStats.runId}`}`);
   }
