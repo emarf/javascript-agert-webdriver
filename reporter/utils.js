@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import FormData from 'form-data';
-import { testrailLabels, xrayLabels, zephyrLabels } from './constants';
+import { logLevels, testrailLabels, xrayLabels, zephyrLabels } from './constants';
 
 const getBrowserCapabilities = (suiteStats) => ({
   "browserName": suiteStats.capabilities.browserName,
@@ -304,6 +304,14 @@ const parseLabels = (labels) => {
   return arr;
 }
 
+const parseLogs = (logs, level) => {
+  return logs.map((el) => ({message: el, level: logLevels[level], timestamp: Date.now()}))
+}
+
+const deleteVideoFolder = () => {
+  const folderPath = path.join(__dirname, 'videos');
+  fs.rmSync(folderPath, {recursive: true});
+}
 
 
 export {
@@ -319,4 +327,6 @@ export {
   parseTcmRunOptions,
   parseTcmTestOptions,
   parseLabels,
+  parseLogs,
+  deleteVideoFolder,
 }

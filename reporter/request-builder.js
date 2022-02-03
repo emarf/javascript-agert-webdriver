@@ -66,21 +66,21 @@ const getTestEnd = (test) => {
   };
 };
 
-const getTestSessionStart = (testStats, zbrTestId, capabilities) => {
+const getTestSessionStart = (testStats, testId, capabilities) => {
   return {
     'sessionId': uuidv4(),
     'initiatedAt': testStats.start,
     'startedAt': testStats.start,
     'capabilities': capabilities ? capabilities : 'n/a',
     'desiredCapabilities': capabilities ? capabilities : 'n/a',
-    'testIds': [zbrTestId]
+    'testIds': [testId]
   };
 };
 
-const getTestSessionEnd = (testStats, zbrTestId) => {
+const getTestSessionEnd = (testStats, testId) => {
   return {
     'endedAt': testStats.end,
-    'testIds': [zbrTestId]
+    'testIds': [testId]
   };
 };
 

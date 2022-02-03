@@ -18,22 +18,21 @@
     },
     "homepage": "https://github.com/emarf/javascript-agert-webdriver#readme",
     "devDependencies": {
-        "@babel/core": "^7.16.12",
+        "@babel/core": "^7.17.0",
         "@babel/preset-env": "^7.16.11",
-        "@babel/register": "^7.16.9",
+        "@babel/register": "^7.17.0",
         "@wdio/cli": "^7.16.14",
         "@wdio/local-runner": "^7.16.14",
         "@wdio/mocha-framework": "^7.16.14",
-        "chromedriver": "^97.0.3",
+        "chromedriver": "^97.0.4",
         "wdio-chromedriver-service": "^7.2.6"
     },
     "dependencies": {
         "@wdio/reporter": "^7.16.14",
         "axios": "^0.25.0",
-        "dotenv": "^15.0.0",
+        "dotenv": "^16.0.0",
         "form-data": "^4.0.0",
         "uuid": "^8.3.2",
-        "wdio-video-recorder": "^1.0.2",
         "wdio-video-reporter": "^3.2.0"
     }
 }
