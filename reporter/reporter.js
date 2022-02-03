@@ -1,6 +1,7 @@
 import WDIOReporter from '@wdio/reporter'
 import ZebrunnerApiClient from './zebr-api-client';
-import { parseDate, getBrowserCapabilities, parseTcmRunOptions, parseTcmTestOptions, parseLabels } from './utils';
+import { parseDate, getBrowserCapabilities, parseTcmRunOptions, parseTcmTestOptions, parseLabels, parseLogs, deleteVideoFolder } from './utils';
+import { emitterCommands } from './constants';
 
 export default class ZebrunnerReporter extends WDIOReporter {
   constructor(reporterConfig) {
@@ -24,6 +25,7 @@ export default class ZebrunnerReporter extends WDIOReporter {
       labels: [],
       attachments: [],
       references: [],
+      logs: [],
     };
     this.promiseFinish = [];
     this.registerServicesListeners();
@@ -34,17 +36,18 @@ export default class ZebrunnerReporter extends WDIOReporter {
   }
 
   registerServicesListeners() {
-    process.on("SET_MAINTAINER", this.setMaintainer.bind(this));
-    process.on("SET_RUN_LABELS", this.setRunLabels.bind(this));
-    process.on("SET_TEST_LABELS", this.setTestLabels.bind(this));
-    process.on("SET_RUN_TCM_OPTIONS", this.setRunTcmOptions.bind(this));
-    process.on("SET_TEST_TCM_OPTIONS", this.setTestTcmOptions.bind(this));
-    process.on("ATTACH_TO_TEST_RUN", this.attachToTestRun.bind(this));
-    process.on("ATTACH_REF_TO_TEST_RUN", this.attachReferenceToTestRun.bind(this));
-    process.on("ATTACH_TO_TEST", this.attachToTest.bind(this));
-    process.on("ATTACH_REF_TO_TEST", this.attachReferenceToTest.bind(this));
-    process.on("SET_TEST_LOGS", this.setTestLogs.bind(this));
-    process.on("REVERT_TEST_REGISTRATION", this.revertTestRegistration.bind(this));
+    process.on(emitterCommands.SET_MAINTAINER, this.setMaintainer.bind(this));
+    process.on(emitterCommands.SET_RUN_LABELS, this.setRunLabels.bind(this));
+    process.on(emitterCommands.SET_TEST_LABELS, this.setTestLabels.bind(this));
+    process.on(emitterCommands.SET_RUN_TCM_OPTIONS, this.setRunTcmOptions.bind(this));
+    process.on(emitterCommands.SET_TEST_TCM_OPTIONS, this.setTestTcmOptions.bind(this));
+    process.on(emitterCommands.ATTACH_TO_TEST_RUN, this.attachToTestRun.bind(this));
+    process.on(emitterCommands.ATTACH_REF_TO_TEST_RUN, this.attachReferenceToTestRun.bind(this));
+    process.on(emitterCommands.ATTACH_TO_TEST, this.attachToTest.bind(this));
+    process.on(emitterCommands.ATTACH_REF_TO_TEST, this.attachReferenceToTest.bind(this));
+    // process.on(emitterCommands.SET_TEST_LOGS, this.setTestLogs.bind(this));
+    process.on(emitterCommands.REVERT_TEST_REGISTRATION, this.revertTestRegistration.bind(this));
+    process.on('exit', this.clearAllAttachFolders.bind(this));
   }
 
   get isSynchronised() {
@@ -74,6 +77,7 @@ export default class ZebrunnerReporter extends WDIOReporter {
 
   onTestPass(testStats) {
     console.log('onTestPass');
+    console.log('cur test', this.currentTestId);
     this.promiseFinish.push(this.zebrunnerApiClient.finishTestSession(testStats));
     this.promiseFinish.push(this.zebrunnerApiClient.finishTest(testStats));
   };
@@ -87,6 +91,7 @@ export default class ZebrunnerReporter extends WDIOReporter {
 
   onSuiteEnd(testStats) {
     console.log('onSuiteEnd');
+    // console.log(testStats);
     const arraysOfLogs = this.allTests.map((testId, index) => this.createLogs(testId, testStats.tests[index]));
     this.logs.push(arraysOfLogs);
     const testsLogs = this.logs.flat(2);
@@ -152,14 +157,14 @@ export default class ZebrunnerReporter extends WDIOReporter {
       try {
         Promise.all([
           this.zebrunnerApiClient.startTest(testStats, this.currentTestOptions.maintainer),
-          this.zebrunnerApiClient.startTestSession(testStats, this.browserCapabilities),
         ]).then((res) => {
           if (this.isRevert) {
             this.revertTests.push(res[0]);
             this.isRevert = false;
           }
-          this.allTests.push(res[0])
+          this.allTests.push(res[0]);
           this.currentTestId = res[0];
+          this.zebrunnerApiClient.startTestSession(testStats, this.browserCapabilities, res[0]),
           this.sendTestAttachments(this.currentTestId, this.currentTestOptions);
         })
       } catch (e) {
@@ -232,16 +237,12 @@ export default class ZebrunnerReporter extends WDIOReporter {
     this.currentTestOptions.references = references;
   }
 
-  setTestLogs(logs) {
-    console.log('test logs');
-    const testId = this.currentTestId;
-    const logsWithId = logs.map((log) => ({ ...log, testId }));
-    this.logs.push(logsWithId);
-  }
+  // setTestLogs(logs, level) {
+    // this.currentTestOptions.logs.push(parseLogs(logs, level));
+  // }
 
-  revertTestRegistration() {
-    console.log('revert test');
-    this.isRevert = true;
+  revertTestRegistration(isRevert) {
+    this.isRevert = isRevert;
   }
 
   createLogs(testId, testStats) {
@@ -304,5 +305,9 @@ export default class ZebrunnerReporter extends WDIOReporter {
     }
 
     return logsForTest;
+  }
+
+  clearAllAttachFolders() {
+    deleteVideoFolder();
   }
 };

@@ -45,7 +45,7 @@ const zephyrLabels = {
   JIRA_PROJECT_KEY: 'com.zebrunner.app/tcm.zephyr.jira-project-key',
   TEST_CASE_KEY: 'com.zebrunner.app/tcm.zephyr.test-case-key',
 }
-'com.zebrunner.app/tcm.zephyr.test-case-key'
+
 const commonHeaders = {
   jsonHeaders: {
     headers: {
@@ -65,10 +65,36 @@ const commonHeaders = {
   },
 };
 
+const logLevels = {
+  fatal: 'FATAL',
+  error: 'ERROR',
+  warn: 'WARN',
+  info: 'INFO',
+  debug: 'DEBUG',
+  trace: 'TRACE',
+  all: 'ALL',
+};
+
+const emitterCommands = {
+  SET_MAINTAINER: 'SET_MAINTAINER',
+  SET_RUN_LABELS: 'SET_RUN_LABELS',
+  SET_TEST_LABELS: 'SET_TEST_LABELS',
+  SET_RUN_TCM_OPTIONS: 'SET_RUN_TCM_OPTIONS',
+  SET_TEST_TCM_OPTIONS: 'SET_TEST_TCM_OPTIONS',
+  ATTACH_TO_TEST_RUN: 'ATTACH_TO_TEST_RUN',
+  ATTACH_REF_TO_TEST_RUN: 'ATTACH_REF_TO_TEST_RUN',
+  ATTACH_TO_TEST: 'ATTACH_TO_TEST',
+  ATTACH_REF_TO_TEST: 'ATTACH_REF_TO_TEST',
+  SET_TEST_LOGS: 'SET_TEST_LOGS',
+  REVERT_TEST_REGISTRATION: 'REVERT_TEST_REGISTRATION',
+}
+
 export {
   urls,
   testrailLabels,
   xrayLabels,
   zephyrLabels,
   commonHeaders,
+  logLevels,
+  emitterCommands,
 };

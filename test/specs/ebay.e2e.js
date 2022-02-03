@@ -41,7 +41,6 @@ describe('Ebay Product Search', () => {
   })
 
   it('should verify title search laptop and verify title', async () => {
-    // reporterEmitter.revertTestRegistration();
 
     const tcmTestOptions = [
       {
@@ -66,7 +65,6 @@ describe('Ebay Product Search', () => {
       ['test ref2', 'https://youtube.com']
     ])
 
-
     await browser.url(`https://www.ebay.com`);
 
     await expect(browser).toHaveTitle('Электроника, автомобили, мода, коллекционирование, купоны и другие товары | eBay');
@@ -83,6 +81,8 @@ describe('Ebay Product Search', () => {
   });
 
   it('should search telephones and verify title', async () => {
+    // reporterEmitter.revertTestRegistration();
+
     // reporterEmitter.setMaintainer('emarf');
     reporterEmitter.setTestLabels({
       Author: 'simple',
@@ -98,6 +98,7 @@ describe('Ebay Product Search', () => {
     await expect(searchInput).toHaveValue('telephones');
 
     await expect(browser).toHaveTitle('telephones | eBay');
+    
   });
 })
 

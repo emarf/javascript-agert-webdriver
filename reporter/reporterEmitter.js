@@ -1,35 +1,37 @@
+import { emitterCommands } from "./constants";
+
 export const reporterEmitter = {
   setMaintainer: (maintainer) => {
-    process.emit('SET_MAINTAINER', maintainer)
+    process.emit(emitterCommands.SET_MAINTAINER, maintainer)
   },
   setRunLabels: (labels) => {
-    process.emit('SET_RUN_LABELS', labels)
+    process.emit(emitterCommands.SET_RUN_LABELS, labels)
   },
   setTestLabels: (labels) => {
-    process.emit('SET_TEST_LABELS', labels)
+    process.emit(emitterCommands.SET_TEST_LABELS, labels)
   },
   setRunTcmOptions: (options) => {
-    process.emit('SET_RUN_TCM_OPTIONS', options);
+    process.emit(emitterCommands.SET_RUN_TCM_OPTIONS, options);
   },
   setTestTcmOptions: (options) => {
-    process.emit('SET_TEST_TCM_OPTIONS', options);
+    process.emit(emitterCommands.SET_TEST_TCM_OPTIONS, options);
   },
   attachToTestRun: (attachments) => {
-    process.emit('ATTACH_TO_TEST_RUN', attachments);
+    process.emit(emitterCommands.ATTACH_TO_TEST_RUN, attachments);
   },
   attachReferenceToTestRun: (references) => {
-    process.emit('ATTACH_REF_TO_TEST_RUN', references);
+    process.emit(emitterCommands.ATTACH_REF_TO_TEST_RUN, references);
   },
   attachToTest: (attachments) => {
-    process.emit('ATTACH_TO_TEST', attachments);
+    process.emit(emitterCommands.ATTACH_TO_TEST, attachments);
   },
   attachReferenceToTest: (references) => {
-    process.emit('ATTACH_REF_TO_TEST', references);
+    process.emit(emitterCommands.ATTACH_REF_TO_TEST, references);
   },
-  setTestLogs: (logs) => {
-    process.emit('SET_TEST_LOGS', logs)
-  },
+  // setTestLogs: (logs, level = 'info') => {
+  //   process.emit(emitterCommands.SET_TEST_LOGS, logs, level)
+  // },
   revertTestRegistration: () => {
-    process.emit('REVERT_TEST_REGISTRATION',)
+    process.emit(emitterCommands.REVERT_TEST_REGISTRATION, true);
   },
 };

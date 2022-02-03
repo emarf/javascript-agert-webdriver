@@ -83,17 +83,15 @@ class ZebrunnerApiClient {
 
   async startTest(test, maintainer) {
     try {
-      if (this.runStats.runId) {
-        const url = urls.URL_START_TEST.replace('${testRunId}', this.runStats.runId);
-        const testStartBody = getTestStart(test, maintainer);
-        const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
-        const response = await this.httpClient.fetchRequest('POST', url, testStartBody, headers);
-        this.runStats.zbrTestId = response.data.id;
-        this.runStats.uniqueTestId = test.cid;
+      const url = urls.URL_START_TEST.replace('${testRunId}', this.runStats.runId);
+      const testStartBody = getTestStart(test, maintainer);
+      const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
+      const response = await this.httpClient.fetchRequest('POST', url, testStartBody, headers);
+      this.runStats.zbrTestId = response.data.id;
+      this.runStats.uniqueTestId = test.cid;
 
-        console.log(`Test '${test.fullTitle}' was registered by id ${this.runStats.zbrTestId}`);
-        return response.data.id;
-      }
+      console.log(`Test '${test.fullTitle}' was registered by id ${this.runStats.zbrTestId}`);
+      return response.data.id;
     } catch (e) {
       console.log(e)
     }
@@ -101,27 +99,29 @@ class ZebrunnerApiClient {
 
   async finishTest(test) {
     try {
-      if (this.runStats.uniqueTestId === test.cid) {
-        const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
-        const testEnd = getTestEnd(test);
-        const url = urls.URL_FINISH_TEST.replace('${testRunId}', this.runStats.runId).replace('${testId}', this.runStats.zbrTestId);
+      // if (this.runStats.uniqueTestId === test.cid) {
+      const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
+      const testEnd = getTestEnd(test);
+      const url = urls.URL_FINISH_TEST.replace('${testRunId}', this.runStats.runId).replace('${testId}', this.runStats.zbrTestId);
 
-        const response = await this.httpClient.fetchRequest('PUT', url, testEnd, headers);
+      const response = await this.httpClient.fetchRequest('PUT', url, testEnd, headers);
 
-        console.log(`Test with ID ${this.runStats.zbrTestId} was finished with status ${test.state.toUpperCase()}`);
+      console.log(`Test with ID ${this.runStats.zbrTestId} was finished with status ${test.state.toUpperCase()}`);
 
-        return response;
-      }
+      return response;
+      // }
     } catch (e) {
       console.log(e)
     }
   }
 
-  async startTestSession(test, capabilities) {
+  async startTestSession(test, capabilities, testId) {
     try {
-      if (this.runStats.uniqueTestId === test.cid) {
+      // if (this.runStats.uniqueTestId === test.cid) {
+        // console.log(this.testStats1.get(test.uid));
         const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
-        const testSession = getTestSessionStart(test, this.runStats.zbrTestId, capabilities);
+        const testSession = getTestSessionStart(test, testId, capabilities);
+        console.log(testSession);
         const url = urls.URL_START_SESSION.replace('${testRunId}', this.runStats.runId);
         const response = await this.httpClient.fetchRequest('POST', url, testSession, headers);
 
@@ -129,7 +129,7 @@ class ZebrunnerApiClient {
         this.sessionOptions.push({ uid: test.uid, sessionId: response.data.id });
 
         console.log(`Session with id ${response.data.id} was registered for test '${test.fullTitle}'`);
-      }
+      // }
     } catch (e) {
       console.log(e)
     }
@@ -137,7 +137,7 @@ class ZebrunnerApiClient {
 
   async finishTestSession(test) {
     try {
-      if (this.runStats.uniqueTestId === test.cid) {
+      // if (this.runStats.uniqueTestId === test.cid) {
         const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
         const testSession = getTestSessionEnd(test, this.runStats.zbrTestId);
         const url = urls.URL_UPDATE_SESSION.replace('${testRunId}', this.runStats.runId).replace('${testSessionId}', this.runStats.sessionId);
@@ -145,7 +145,7 @@ class ZebrunnerApiClient {
         const response = await this.httpClient.fetchRequest('PUT', url, testSession, headers);
         console.log(`Session with id ${this.runStats.sessionId} was finish`)
         return response;
-      }
+      // }
     } catch (e) {
       console.log(e)
     }
