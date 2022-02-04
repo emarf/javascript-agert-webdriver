@@ -1,4 +1,4 @@
-import { reporterEmitter } from '../reporter/reporterEmitter';
+import { reporterEmitter } from '../../src/reporterEmitter';
 
 describe('Webdriverio main page', () => {
 

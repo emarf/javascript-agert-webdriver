@@ -31,11 +31,10 @@ export default class ZebrunnerReporter extends WDIOReporter {
     };
     this.promiseFinish = [];
     this.registerServicesListeners();
-    this.tests;
+    this.arrOfTestStats;
     this.allTests = [];
     this.isRevert = false;
     this.revertTests = [];
-    this.endOfAllTests = new RunnableStats();
   }
 
   registerServicesListeners() {
@@ -61,6 +60,7 @@ export default class ZebrunnerReporter extends WDIOReporter {
   }
 
   onRunnerStart(runStats) {
+    deleteVideoFolder();
     console.log('onRunnerStart');
     this.browserCapabilities = getBrowserCapabilities(runStats);
   }
@@ -92,12 +92,11 @@ export default class ZebrunnerReporter extends WDIOReporter {
 
   onSuiteEnd(testStats) {
     console.log('onSuiteEnd');
-    // console.log(testStats);
     const arraysOfLogs = this.allTests.map((testId, index) => this.createLogs(testId, testStats.tests[index]));
     this.logs.push(arraysOfLogs);
     const testsLogs = this.logs.flat(2);
     this.zebrunnerApiClient.sendLogs(testsLogs);
-    this.tests = testStats.tests;
+    this.arrOfTestStats = testStats.tests;
   }
 
   async onRunnerEnd(runStats) {
@@ -108,7 +107,7 @@ export default class ZebrunnerReporter extends WDIOReporter {
 
         await this.sendRunAttachments(this.runOptions);
 
-        this.tests.forEach((test, index) => {
+        this.arrOfTestStats.forEach((test, index) => {
           this.zebrunnerApiClient.sendTestVideo(test);
           this.zebrunnerApiClient.sendScreenshots(test, this.allTests[index])
         });

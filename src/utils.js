@@ -309,6 +309,9 @@ const parseLogs = (logs, level) => {
 const deleteVideoFolder = () => {
   const folderPath = path.join(__dirname, '../videos');
   console.log(folderPath);
+  // if (!fs.existsSync(folderPath)) {
+  //   return;
+  // }
   fs.rmSync(folderPath, {recursive: true});
 }
 

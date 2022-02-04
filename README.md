@@ -80,7 +80,6 @@ then add video-reporter to `wdio.conf.js`
 
 ```js
 import ZebrunnerReporter from "./reporter/reporter";
-import CustomLauncherService from "./services/launchService";
 const video = require("wdio-video-reporter");
 
 module.exports = {
@@ -95,8 +94,6 @@ module.exports = {
     ],
     [ZebrunnerReporter, config],
   ],
-
-  services: [[CustomLauncherService]],
 };
 ```
 
