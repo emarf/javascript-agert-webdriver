@@ -19,7 +19,12 @@ import {
   getScreenshotAttachments,
 } from './utils';
 import { commonHeaders, urls } from './constants';
-class ZebrunnerApiClient {
+export default class ZebrunnerApiClient {
+  private reporterConfig;
+  private httpClient;
+  private accessToken;
+  private runStats;
+  private sessionOptions;
   constructor(reporterConfig) {
     this.reporterConfig = reporterConfig
     this.httpClient = new HttpClient(this.reporterConfig)
@@ -29,7 +34,6 @@ class ZebrunnerApiClient {
       sessionId: '',
       runId: '',
     }
-    this.testSessions = [];
     this.sessionOptions = [];
   }
 
@@ -291,4 +295,3 @@ class ZebrunnerApiClient {
   }
 }
 
-module.exports = ZebrunnerApiClient

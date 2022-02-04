@@ -1,5 +1,5 @@
-import path from 'path';
-import fs from 'fs';
+import * as path from 'path';
+import * as fs from 'fs';
 import FormData from 'form-data';
 import { logLevels, testrailLabels, xrayLabels, zephyrLabels } from './constants';
 
@@ -121,7 +121,7 @@ const parseTcmRunOptions = (data) => {
         key: xrayLabels.SYNC_REAL_TIME,
         value: false,
       },
-    },
+    } || {},
     testRail: {
       suiteId: {
         key: testrailLabels.SUITE_ID,
@@ -155,7 +155,7 @@ const parseTcmRunOptions = (data) => {
         key: testrailLabels.SYNC_REAL_TIME,
         value: false,
       },
-    },
+    } || {},
     zephyr: {
       testCycleKey: {
         key: zephyrLabels.TEST_CYCLE_KEY,
@@ -173,7 +173,7 @@ const parseTcmRunOptions = (data) => {
         key: zephyrLabels.SYNC_REAL_TIME,
         value: false,
       },
-    },
+    } || {},
   };
   data.forEach((obj) => {
     Object.keys(obj).forEach((key) => {

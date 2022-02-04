@@ -139,7 +139,7 @@ const getTestsSearch = (testRunId) => {
   }
 };
 
-module.exports = {
+export {
   getRefreshToken,
   getTestRunStart,
   getTestRunEnd,
