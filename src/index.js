@@ -1,7 +1,2 @@
-import { reporterEmitter } from "./reporterEmitter";
-import ZebrunnerReporter from "./ZebrunnerReporter";
-
-export {
-  reporterEmitter,
-  ZebrunnerReporter
-}
+export { ZebrunnerReporter } from './ZebrunnerReporter';
+export { reporterEmitter } from './reporterEmitter';
