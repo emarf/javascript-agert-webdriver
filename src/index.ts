@@ -1,9 +1,41 @@
-import WDIOReporter from '@wdio/reporter'
+import WDIOReporter, { AfterCommandArgs, SuiteStats, TestStats } from '@wdio/reporter'
 import ZebrunnerApiClient from './zebr-api-client';
 import { parseDate, getBrowserCapabilities, parseTcmRunOptions, parseTcmTestOptions, parseLabels, parseLogs, deleteVideoFolder, parseWdioConfig } from './utils';
 import { emitterCommands } from './constants';
 import { reporterEmitter } from './reporterEmitter';
+
+export type ReporterConfig = {
+  enabled: boolean;
+  reportingServerHostname: string;
+  reportingProjectKey: string;
+  reportingRunDisplayName: string;
+  reportingRunBuild: string;
+  reportingRunEnvironment: string;
+  reportingNotifyOnEachFailure: boolean;
+  reportingNotificationSlackChannels: string;
+  reportingNotificationMsTeamsChannels: string;
+  reportingNotificationEmails: string;
+  reportingMilestoneId: string;
+  reportingMilestoneName: string;
+  reportingRunLocale: string;
+};
+
 class ZebrunnerReporter extends WDIOReporter {
+  private reporterConfig: ReporterConfig;
+  private zebrunnerApiClient;
+  private browserCapabilities;
+  private syncReporting;
+  private runId;
+  private currentTestId;
+  private logs;
+  private runOptions;
+  private currentTestOptions;
+  private promiseFinish;
+  private arrOfTestStats;
+  private allTests;
+  private isRevert;
+  private revertTests;
+
   constructor(reporterConfig) {
     super(reporterConfig);
     this.reporterConfig = parseWdioConfig(reporterConfig);
@@ -240,8 +272,8 @@ class ZebrunnerReporter extends WDIOReporter {
   // this.currentTestOptions.logs.push(parseLogs(logs, level));
   // }
 
-  revertTestRegistration(isRevert) {
-    this.isRevert = isRevert;
+  revertTestRegistration() {
+    this.isRevert = true;
   }
 
   createLogs(testId, testStats) {

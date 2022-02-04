@@ -32,6 +32,6 @@ export const reporterEmitter = {
   //   process.emit(emitterCommands.SET_TEST_LOGS, logs, level)
   // },
   revertTestRegistration: () => {
-    process.emit(emitterCommands.REVERT_TEST_REGISTRATION, true);
+    process.emit(emitterCommands.REVERT_TEST_REGISTRATION);
   },
 };

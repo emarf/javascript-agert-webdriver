@@ -1,8 +1,11 @@
 import axios from 'axios';
 export default class HttpClient {
+  private reporterConfig;
+  private baseUrl;
+  private axiosClient;
   constructor(reporterConfig) {
     this.reporterConfig = reporterConfig;
-    this.baseUrl = reporterConfig.reportingServerHostname;
+    this.baseUrl = this.reporterConfig.reportingServerHostname;
     // set config defaults when creating the instance
     this.axiosClient = axios.create({
       baseURL: this.baseUrl,
@@ -28,7 +31,7 @@ export default class HttpClient {
         response = await this.axiosClient.delete(url, config);
       }
 
-      this._positiveLog(response, url, body);
+      this._positiveLog(response, url);
 
       return response;
     } catch (error) {
