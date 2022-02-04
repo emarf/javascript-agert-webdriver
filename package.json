@@ -1,6 +1,6 @@
 {
-    "name": "javascript-agent-webdriver",
-    "version": "1.0.3",
+    "name": "wdio-zebr-reporter",
+    "version": "1.0.0",
     "description": "Zebrunner Webdriver agent",
     "main": "src/index.js",
     "scripts": {
@@ -33,5 +33,6 @@
         "form-data": "^4.0.0",
         "uuid": "^8.3.2",
         "wdio-video-reporter": "^3.2.0"
-    }
+    },
+    "keywords": ["wdio-plugin", "wdio-reporter"]
 }
