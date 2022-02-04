@@ -1,4 +1,4 @@
-import ZebrunnerReporter from './src/ZebrunnerReporter';
+import ZebrunnerReporter from './src';
 const video = require('wdio-video-reporter');
 require('dotenv').config();
 
