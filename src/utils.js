@@ -56,7 +56,7 @@ const getArtifactReferences = (references) => {
 
 const getVideoAttachments = async (title, parent) => {
   const roughlyFileName = `${parent.replaceAll(' ', '-')}--${title.replaceAll(' ', '-')}`;
-  const videosFolder = _joinPath(['videos']);
+  const videosFolder = _joinPath(['../videos']);
   let videoName;
 
   fs.readdirSync(videosFolder).forEach((file) => {
@@ -65,11 +65,10 @@ const getVideoAttachments = async (title, parent) => {
     }
   });
 
-  const videoPath = _joinPath(['/videos', videoName]);
+  const videoPath = _joinPath(['../videos', videoName]);
   const formData = new FormData();
   const stream = fs.createReadStream(videoPath);
 
-  stream.on('close', () => { fs.rmSync(videoPath) });
   stream.on('error', (err) => console.log(err));
   formData.append('video', stream);
   return { formData, videoPath };
@@ -77,7 +76,7 @@ const getVideoAttachments = async (title, parent) => {
 
 const getScreenshotAttachments = (title, parent) => {
   const roughlyFileName = `${parent.replaceAll(' ', '-')}--${title.replaceAll(' ', '-')}`;
-  const folder = _joinPath(['videos', 'rawSeleniumVideoGrabs']);
+  const folder = _joinPath(['../videos', 'rawSeleniumVideoGrabs']);
   let screenshotFolder;
   const screenshots = [];
   fs.readdirSync(folder).forEach((file) => {
@@ -86,11 +85,11 @@ const getScreenshotAttachments = (title, parent) => {
     }
   })
 
-  fs.readdirSync(_joinPath(['videos', 'rawSeleniumVideoGrabs', screenshotFolder])).forEach((file) => {
-    const bufferImg = fs.readFileSync(_joinPath(['videos', 'rawSeleniumVideoGrabs', screenshotFolder, file]));
+  fs.readdirSync(_joinPath(['../videos', 'rawSeleniumVideoGrabs', screenshotFolder])).forEach((file) => {
+    const bufferImg = fs.readFileSync(_joinPath(['../videos', 'rawSeleniumVideoGrabs', screenshotFolder, file]));
     screenshots.push(bufferImg);
   });
-  fs.rmSync(_joinPath(['videos', 'rawSeleniumVideoGrabs', screenshotFolder]), { recursive: true });
+
   return screenshots;
 }
 
@@ -300,7 +299,6 @@ const parseLabels = (labels) => {
   Object.keys(labels).forEach((key) => {
     arr.push({key: key, value: labels[key]});
   })
-
   return arr;
 }
 
@@ -309,10 +307,118 @@ const parseLogs = (logs, level) => {
 }
 
 const deleteVideoFolder = () => {
-  const folderPath = path.join(__dirname, 'videos');
+  const folderPath = path.join(__dirname, '../videos');
+  console.log(folderPath);
   fs.rmSync(folderPath, {recursive: true});
 }
 
+const parseWdioConfig = (config) => {
+  const wdioConfig = {
+    enabled: process.env.REPORTING_ENABLED ? JSON.parse(process.env.REPORTING_ENABLED) : false,
+    reportingServerHostname: process.env.REPORTING_SERVER_HOSTNAME,
+    reportingProjectKey: process.env.REPORTING_PROJECT_KEY,
+    reportingRunDisplayName: process.env.REPORTING_RUN_DISPLAY_NAME,
+    reportingRunBuild: process.env.REPORTING_RUN_BUILD,
+    reportingRunEnvironment: process.env.REPORTING_RUN_ENVIRONMENT,
+    reportingNotifyOnEachFailure: process.env.REPORTING_NOTIFY_ON_EACH_FAILURE
+      ? JSON.parse(process.env.REPORTING_NOTIFY_ON_EACH_FAILURE)
+      : false,
+    reportingNotificationSlackChannels: process.env.REPORTING_NOTIFICATION_SLACK_CHANNELS,
+    reportingNotificationMsTeamsChannels: process.env.REPORTING_NOTIFICATION_MS_TEAMS_CHANNELS,
+    reportingNotificationEmails: process.env.REPORTING_NOTIFICATION_EMAILS,
+    reportingMilestoneId: process.env.REPORTING_MILESTONE_ID,
+    reportingMilestoneName: process.env.REPORTING_MILESTONE_NAME,
+    reportingRunLocale: process.env.REPORTING_RUN_LOCALE,
+  };
+  
+
+  Object.keys(config).forEach((key) => {
+    if (key === 'enabled') {
+      wdioConfig.enabled = _getConfigVar('ENABLED', config[key]);
+    }
+    if (key === 'reportingServerHostname') {
+      wdioConfig.reportingServerHostname = _getConfigVar(
+        'REPORTING_SERVER_HOSTNAME',
+        config[key]
+      );
+    }
+    if (key === 'reportingProjectKey') {
+      wdioConfig.reportingProjectKey = _getConfigVar('REPORTING_PROJECT_KEY', config[key]);
+    }
+    if (key === 'reportingRunDisplayName') {
+      wdioConfig.reportingRunDisplayName = _getConfigVar(
+        'REPORTING_RUN_DISPLAY_NAME',
+        config[key]
+      );
+    }
+    if (key === 'reportingRunBuild') {
+      wdioConfig.reportingRunBuild = _getConfigVar('REPORTING_RUN_BUILD', config[key]);
+    }
+    if (key === 'reportingRunEnvironment') {
+      wdioConfig.reportingRunEnvironment = _getConfigVar(
+        'REPORTING_RUN_ENVIRONMENT',
+        config[key]
+      );
+    }
+    if (key === 'reportingNotifyOnEachFailure') {
+      wdioConfig.reportingNotifyOnEachFailure = _getConfigVar(
+        'REPORTING_NOTIFY_ON_EACH_FAILURE',
+        config[key]
+      );
+    }
+    if (key === 'reportingNotificationSlackChannels') {
+      wdioConfig.reportingNotificationSlackChannels = _getConfigVar(
+        'REPORTING_NOTIFICATION_SLACK_CHANNELS',
+        config[key]
+      );
+    }
+    if (key === 'reportingNotificationMsTeamsChannels') {
+      wdioConfig.reportingNotificationMsTeamsChannels = _getConfigVar(
+        'REPORTING_NOTIFICATION_MS_TEAMS_CHANNELS',
+        config[key]
+      );
+    }
+    if (key === 'reportingNotificationEmails') {
+      wdioConfig.reportingNotificationEmails = _getConfigVar(
+        'REPORTING_NOTIFICATION_EMAILS',
+        config[key]
+      );
+    }
+    if (key === 'reportingMilestoneId') {
+      wdioConfig.reportingMilestoneId = _getConfigVar('REPORTING_MILESTONE_ID', config[key]);
+    }
+    if (key === 'reportingMilestoneName') {
+      wdioConfig.reportingMilestoneName = _getConfigVar(
+        'REPORTING_MILESTONE_NAME',
+        config[key]
+      );
+    }
+    if (key === 'reportingRunLocale') {
+      wdioConfig.reportingRunLocale = _getConfigVar(
+        'REPORTING_RUN_LOCALE',
+        config[key]
+      );
+    }
+  });
+
+  Object.keys(wdioConfig).forEach((key) => {
+    if (wdioConfig[key] === '' || wdioConfig[key] === undefined) {
+      delete wdioConfig[key];
+    }
+  });
+
+  return wdioConfig;
+};
+
+const _getConfigVar = (envVarName, configVar) => {
+  if (process.env[envVarName]) {
+    return process.env[envVarName];
+  } else if (configVar) {
+    return configVar;
+  } else {
+    return undefined;
+  }
+};
 
 export {
   logObject,
@@ -329,4 +435,5 @@ export {
   parseLabels,
   parseLogs,
   deleteVideoFolder,
+  parseWdioConfig,
 }

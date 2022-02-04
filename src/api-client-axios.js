@@ -1,8 +1,8 @@
 import axios from 'axios';
 export default class HttpClient {
-  constructor(configResolver) {
-    this.configResolver = configResolver;
-    this.baseUrl = configResolver.getReportingServerHostname();
+  constructor(reporterConfig) {
+    this.reporterConfig = reporterConfig;
+    this.baseUrl = reporterConfig.reportingServerHostname;
     // set config defaults when creating the instance
     this.axiosClient = axios.create({
       baseURL: this.baseUrl,
