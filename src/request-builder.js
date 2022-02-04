@@ -1,6 +1,4 @@
 import { v4 as uuidv4 } from 'uuid';
-import ConfigResolver from './config-resolver';
-
 
 const getRefreshToken = (token) => {
   return {
@@ -11,33 +9,34 @@ const getRefreshToken = (token) => {
 const getTestRunStart = (suite, reporterConfig) => {
   let testRunStartBody = {
     uuid: uuidv4(),
-    name: suite.title,
+    name: reporterConfig.reportingRunDisplayName ? reporterConfig.reportingRunDisplayName : 'Default suite',
     startedAt: suite.start,
     framework: 'wdio',
-    config: {},
-    notificationTargets: []
+    config: {
+      environment: reporterConfig.reportingRunEnvironment ? reporterConfig.reportingRunEnvironment : '-',
+      build: reporterConfig.reportingRunBuild ? reporterConfig.reportingRunBuild : ''
+    },
+    milestone: {
+      id: reporterConfig.reportingMilestoneId ? reporterConfig.reportingMilestoneId : null,
+      name: reporterConfig.reportingMilestoneName ? reporterConfig.reportingMilestoneName : null,
+    },
+    notifications: {
+      notifyOnEachFailure: reporterConfig.reportingNotifyOnEachFailure,
+      targets: [],
+    }
   };
-  let configResolver = new ConfigResolver(reporterConfig)
 
-  if (configResolver.getReportingRunEnvironment()) {
-    testRunStartBody.config.environment = configResolver.getReportingRunEnvironment()
-  }
-  if (configResolver.getReportingRunBuild()) {
-    testRunStartBody.config.build = configResolver.getReportingRunBuild()
-  }
-  if (configResolver.getReportingRunDisplayName()) {
-    testRunStartBody.name = configResolver.getReportingRunDisplayName()
-  }
-  if (configResolver.getReportingCiRunId()) {
-    testRunStartBody.uuid = configResolver.getReportingCiRunId()
-  }
-  if (configResolver.getSlackChannels()) {
-    testRunStartBody.notificationTargets.push({ 'type': 'SLACK_CHANNELS', 'value': configResolver.getSlackChannels() })
-  }
-  if (configResolver.getEmailRecipients()) {
-    testRunStartBody.notificationTargets.push({ 'type': 'EMAIL_RECIPIENTS', 'value': configResolver.getEmailRecipients() })
-  }
-
+  Object.keys(reporterConfig).forEach((key) => {
+    if (key === 'reportingNotificationSlackChannels') {
+      testRunStartBody.notifications.targets.push({type: 'SLACK_CHANNELS', value: reporterConfig[key]})
+    }
+    if (key === 'reportingNotificationMsTeamsChannels') {
+      testRunStartBody.notifications.targets.push({type: 'MS_TEAMS_CHANNELS', value: reporterConfig[key]})
+    }
+    if (key === 'reportingNotificationEmails') {
+      testRunStartBody.notifications.targets.push({type: 'EMAIL_RECIPIENTS', value: reporterConfig[key]})
+    }
+  })
   return testRunStartBody;
 };
 
@@ -94,7 +93,8 @@ const getTestRunLabels = (reporterOptions, options) => {
   }
 
   if (options.tcmConfig) {
-    Object.keys(options.tcmConfig).forEach((el) => {;
+    Object.keys(options.tcmConfig).forEach((el) => {
+      ;
       Object.keys(options.tcmConfig[el]).forEach((key) => {
         testRunLabelsBody.items.push(options.tcmConfig[el][key])
       })
@@ -102,7 +102,8 @@ const getTestRunLabels = (reporterOptions, options) => {
   }
 
   if (options.labels.length > 0) {
-    options.labels.forEach((el) => {
+    const labels = options.labels.flat();
+    labels.forEach((el) => {
       testRunLabelsBody.items.push(el);
     })
   }
@@ -122,7 +123,8 @@ const getTestLabels = (options) => {
   }
 
   if (options.labels.length > 0) {
-    options.labels.forEach((tcmOptions) => {
+    const labels = options.labels.flat();
+    labels.forEach((tcmOptions) => {
       obj.items.push(tcmOptions);
     })
   }

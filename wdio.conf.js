@@ -1,28 +1,7 @@
-import ZebrunnerReporter from './reporter/reporter';
+import ZebrunnerReporter from './src/ZebrunnerReporter';
+import CustomLauncherService from './src/services/launchService';
 const video = require('wdio-video-reporter');
 require('dotenv').config();
-
-const config = {
-  // "reportingServerHostname": "https://webdriveragent.zebrunner.dev",
-  // "reportingServerAccessToken": "hDyOHr4LVVuUW6vFaO0WqwtdSab7kKxZZWSMWDrR88l2GgdV9J",
-  // "reportingProjectKey": "DEF",
-  // "reportingRunEnvironment": "STAGE",
-  // "reportingRunBuild": "1.0-alpha",
-  // "reportingRunDisplayName": "My regression suite1",
-  // "reportingRunLocale": "en_US",
-  // "reportingCiRunId": "46190073-55db-4411-ac42-fd42b7c96958",
-  // "reportingSlackChannels": "",
-  // "reportingEmailRecipients": "",
-  // "reportingTestrailEnabled": "",
-  // "reportingTestrailSuiteId": "",
-  // "reportingTestrailTestrunName": "",
-  // "reportingTestrailTestrunID": "",
-  // "reportingTestrailMilestone": "",
-  // "reportingTestrailAssignee": "",
-  // "reportingTestrailIncludeAll": "",
-  // "reportingXrayEnabled": "",
-  // "reportingXrayTestExecutionKey": ""
-}
 
 exports.config = {
   reporterSyncInterval: 10 * 1000,
@@ -129,7 +108,7 @@ exports.config = {
   // Services take over a specific job you don't want to take care of. They enhance
   // your test setup with almost no effort. Unlike plugins, they don't add new
   // commands. Instead, they hook themselves up into the test process.
-  services: ['chromedriver'],
+  services: ['chromedriver', [CustomLauncherService]],
 
   // Framework you want to run your specs with.
   // The following are supported: Mocha, Jasmine, and Cucumber
@@ -155,9 +134,23 @@ exports.config = {
     [video, {
       saveAllVideos: true,
       videoSlowdownMultiplier: 3,
-      outputDir: 'reporter/videos',
+      outputDir: 'videos',
     }],
-    [ZebrunnerReporter, config],
+    [ZebrunnerReporter, {
+      enabled: true,
+      reportingServerHostname: 'https://webdriver.zebrunner.com',
+      reportingProjectKey: 'DEF',
+      reportingRunDisplayName: 'PW-tests',
+      reportingRunBuild: 'alpha-1',
+      reportingRunEnvironment: 'STAGE',
+      reportingNotificationNotifyOnEachFailure: true,
+      reportingNotificationSlackChannels: 'channel1,channel2',
+      reportingNotificationMsTeamsChannels: 'channel1,channel2',
+      reportingNotificationEmails: 'channel1,channel2',
+      reportingMilestoneId: '1',
+      reportingMilestoneName: 'test',
+      reportingRunLocale: "en_US",
+    }],
   ],
 
 

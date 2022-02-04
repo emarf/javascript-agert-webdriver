@@ -1,18 +1,17 @@
 {
-    "name": "javascript-agert-webdriver",
+    "name": "javascript-agent-webdriver",
     "version": "1.0.0",
-    "description": "",
-    "main": "index.js",
+    "description": "Zebrunner Webdriver agent",
+    "main": "src/index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
         "wdio": "wdio run wdio.conf.js"
     },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/emarf/javascript-agert-webdriver.git"
     },
-    "author": "",
-    "license": "ISC",
+    "author": "emarf",
+    "license": "MIT",
     "bugs": {
         "url": "https://github.com/emarf/javascript-agert-webdriver/issues"
     },

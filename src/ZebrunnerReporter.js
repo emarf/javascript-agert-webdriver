@@ -1,12 +1,14 @@
 import WDIOReporter from '@wdio/reporter'
 import ZebrunnerApiClient from './zebr-api-client';
-import { parseDate, getBrowserCapabilities, parseTcmRunOptions, parseTcmTestOptions, parseLabels, parseLogs, deleteVideoFolder } from './utils';
+import { parseDate, getBrowserCapabilities, parseTcmRunOptions, parseTcmTestOptions, parseLabels, parseLogs, deleteVideoFolder, parseWdioConfig } from './utils';
 import { emitterCommands } from './constants';
+import RunnableStats from '@wdio/reporter/build/stats/runnable';
 
 export default class ZebrunnerReporter extends WDIOReporter {
   constructor(reporterConfig) {
     super(reporterConfig);
-    this.reporterConfig = { reporterOptions: this.options };
+    this.reporterConfig = parseWdioConfig(reporterConfig);
+    console.log('reporter', this.reporterConfig);
     this.zebrunnerApiClient = new ZebrunnerApiClient(this.reporterConfig);
     this.browserCapabilities;
     this.syncReporting = false;
@@ -33,6 +35,7 @@ export default class ZebrunnerReporter extends WDIOReporter {
     this.allTests = [];
     this.isRevert = false;
     this.revertTests = [];
+    this.endOfAllTests = new RunnableStats();
   }
 
   registerServicesListeners() {
@@ -47,7 +50,6 @@ export default class ZebrunnerReporter extends WDIOReporter {
     process.on(emitterCommands.ATTACH_REF_TO_TEST, this.attachReferenceToTest.bind(this));
     // process.on(emitterCommands.SET_TEST_LOGS, this.setTestLogs.bind(this));
     process.on(emitterCommands.REVERT_TEST_REGISTRATION, this.revertTestRegistration.bind(this));
-    process.on('exit', this.clearAllAttachFolders.bind(this));
   }
 
   get isSynchronised() {
@@ -77,7 +79,6 @@ export default class ZebrunnerReporter extends WDIOReporter {
 
   onTestPass(testStats) {
     console.log('onTestPass');
-    console.log('cur test', this.currentTestId);
     this.promiseFinish.push(this.zebrunnerApiClient.finishTestSession(testStats));
     this.promiseFinish.push(this.zebrunnerApiClient.finishTest(testStats));
   };
@@ -214,11 +215,11 @@ export default class ZebrunnerReporter extends WDIOReporter {
   }
 
   setRunLabels(labels) {
-    this.runOptions.labels = parseLabels(labels);
+    this.runOptions.labels.push(parseLabels(labels));
   }
 
   setTestLabels(labels) {
-    this.currentTestOptions.labels = parseLabels(labels);
+    this.currentTestOptions.labels.push(parseLabels(labels));
   }
 
   attachToTestRun(attachments) {
@@ -305,9 +306,5 @@ export default class ZebrunnerReporter extends WDIOReporter {
     }
 
     return logsForTest;
-  }
-
-  clearAllAttachFolders() {
-    deleteVideoFolder();
   }
 };

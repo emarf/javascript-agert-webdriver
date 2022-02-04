@@ -1,4 +1,4 @@
-import { reporterEmitter } from '../../reporter/reporterEmitter';
+import { reporterEmitter } from '../../src/reporterEmitter';
 
 describe('Ebay Product Search', () => {
 
@@ -30,7 +30,11 @@ describe('Ebay Product Search', () => {
     reporterEmitter.setRunTcmOptions(tcmRunOptions);
     reporterEmitter.setRunLabels({
       Chrome: "85.0",
-      version: 'test',
+      os: 'linux',
+    })
+    reporterEmitter.setRunLabels({
+      Chrome: "87.0",
+      os: 'macos',
     })
 
     reporterEmitter.attachToTestRun(['runEBAY.txt', 'runWDIO.txt'])
@@ -57,6 +61,9 @@ describe('Ebay Product Search', () => {
     reporterEmitter.setTestTcmOptions(tcmTestOptions);
     reporterEmitter.setTestLabels({
       Author: 'Deve Loper',
+    });
+    reporterEmitter.setTestLabels({
+      test: 'best',
     });
 
     reporterEmitter.attachToTest(['testEBAY1.txt', 'testEBAY2.txt'])
@@ -86,6 +93,9 @@ describe('Ebay Product Search', () => {
     // reporterEmitter.setMaintainer('emarf');
     reporterEmitter.setTestLabels({
       Author: 'simple',
+    });
+    reporterEmitter.setTestLabels({
+      foo: 'bar',
     });
 
     const searchInput = $('#gh-ac');
