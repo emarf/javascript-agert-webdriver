@@ -36,17 +36,21 @@ const _addZero = (value) => {
 const getTestArtifacts = (attach) => {
   const arr = [];
   const dir = path.join(__dirname, '../artifacts');
-  const files = fs.readdirSync(dir);
+  if (fs.existsSync(dir)) {
+    const files = fs.readdirSync(dir);
 
-  files.forEach((el) => {
-    if (attach.includes(el)) {
-      const filePath = path.join(dir, el);
-      const formData = new FormData();
-      formData.append('file', fs.createReadStream(filePath));
-      arr.push(formData);
-    }
-  })
-  return arr;
+    files.forEach((el) => {
+      if (attach.includes(el)) {
+        const filePath = path.join(dir, el);
+        const formData = new FormData();
+        formData.append('file', fs.createReadStream(filePath));
+        arr.push(formData);
+      }
+    })
+    return arr;
+  } else {
+    return null;
+  }
 }
 
 const getArtifactReferences = (references) => {
@@ -59,19 +63,24 @@ const getVideoAttachments = async (title, parent) => {
   const videosFolder = _joinPath(['../videos']);
   let videoName;
 
-  fs.readdirSync(videosFolder).forEach((file) => {
-    if (file.includes(roughlyFileName)) {
-      videoName = file;
-    }
-  });
+  if (fs.existsSync(videosFolder)) {
+    fs.readdirSync(videosFolder).forEach((file) => {
+      if (file.includes(roughlyFileName)) {
+        videoName = file;
+      }
+    });
 
-  const videoPath = _joinPath(['../videos', videoName]);
-  const formData = new FormData();
-  const stream = fs.createReadStream(videoPath);
+    const videoPath = _joinPath(['../videos', videoName]);
+    const formData = new FormData();
+    const stream = fs.createReadStream(videoPath);
 
-  stream.on('error', (err) => console.log(err));
-  formData.append('video', stream);
-  return { formData, videoPath };
+    stream.on('error', (err) => console.log(err));
+    formData.append('video', stream);
+
+    return { formData, videoPath };
+  } else {
+    return { formData: null };
+  } 
 }
 
 const getScreenshotAttachments = (title, parent) => {
@@ -79,18 +88,22 @@ const getScreenshotAttachments = (title, parent) => {
   const folder = _joinPath(['../videos', 'rawSeleniumVideoGrabs']);
   let screenshotFolder;
   const screenshots = [];
-  fs.readdirSync(folder).forEach((file) => {
-    if (file.includes(roughlyFileName)) {
-      screenshotFolder = file;
-    }
-  })
-
-  fs.readdirSync(_joinPath(['../videos', 'rawSeleniumVideoGrabs', screenshotFolder])).forEach((file) => {
-    const bufferImg = fs.readFileSync(_joinPath(['../videos', 'rawSeleniumVideoGrabs', screenshotFolder, file]));
-    screenshots.push(bufferImg);
-  });
-
-  return screenshots;
+  if (fs.existsSync(folder)) {
+    fs.readdirSync(folder).forEach((file) => {
+      if (file.includes(roughlyFileName)) {
+        screenshotFolder = file;
+      }
+    })
+  
+    fs.readdirSync(_joinPath(['../videos', 'rawSeleniumVideoGrabs', screenshotFolder])).forEach((file) => {
+      const bufferImg = fs.readFileSync(_joinPath(['../videos', 'rawSeleniumVideoGrabs', screenshotFolder, file]));
+      screenshots.push(bufferImg);
+    });
+  
+    return screenshots;
+  } else {
+    return null;
+  }
 }
 
 const getFileSizeInBytes = (filename) => {
@@ -308,11 +321,10 @@ const parseLogs = (logs, level) => {
 
 const deleteVideoFolder = () => {
   const folderPath = path.join(__dirname, '../videos');
-  console.log(folderPath);
-  // if (!fs.existsSync(folderPath)) {
-  //   return;
-  // }
-  fs.rmSync(folderPath, {recursive: true});
+  console.log(fs.existsSync(folderPath));
+  if (fs.existsSync(folderPath)) {
+    fs.rmSync(folderPath, {recursive: true});
+  }
 }
 
 const parseWdioConfig = (config) => {
