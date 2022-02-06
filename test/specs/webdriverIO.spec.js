@@ -1,4 +1,4 @@
-import { reporterEmitter } from '../../src/reporterEmitter';
+const { reporterEmitter } = require('../../build/index');
 
 describe('Webdriverio main page', () => {
 
@@ -24,7 +24,7 @@ describe('Webdriverio main page', () => {
         zephyrJiraProjectKey: 'zephyr321',
         // zephyrDisableSync: true,
         // zephyrEnableRealTimeSync: true,
-      } 
+      }
     ]
 
     reporterEmitter.setRunTcmOptions(tcmRunOptions);

@@ -15,7 +15,9 @@ jobs:
         with:
           node-version: 16.13.1
       - name: yarn install
-        run: yarn
+        run: yarn install
+      - name: build
+        run: npm run build
       - uses: JS-DevTools/npm-publish@v1
         with:
           access: public

@@ -1,4 +1,4 @@
-import ZebrunnerReporter from './src';
+const { ZebrunnerReporter } = require('./build/index')
 const video = require('wdio-video-reporter');
 require('dotenv').config();
 
@@ -153,13 +153,12 @@ exports.config = {
   ],
 
 
-
   //
   // Options to be passed to Mocha.
   // See the full list at http://mochajs.org/
   mochaOpts: {
     ui: 'bdd',
-    timeout: 60000
+    timeout: 60000,
   },
   //
   // =====

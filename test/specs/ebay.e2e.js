@@ -1,7 +1,8 @@
-import { reporterEmitter } from '../../src/reporterEmitter';
+// import { reporterEmitter } from '../../build/index';
+const { reporterEmitter } = require('../../build/index');
 
 describe('Ebay Product Search', () => {
-
+  console.log(1)
   before(() => {
     const tcmRunOptions = [
       {
@@ -39,8 +40,8 @@ describe('Ebay Product Search', () => {
 
     reporterEmitter.attachToTestRun(['runEBAY.txt', 'runWDIO.txt'])
     reporterEmitter.attachReferenceToTestRun([
-      ['run ref1','https://www.linkedin.com'],
-      ['run ref2','https://www.stackoverflow.com'],
+      ['run ref1', 'https://www.linkedin.com'],
+      ['run ref2', 'https://www.stackoverflow.com'],
     ])
   })
 
@@ -108,7 +109,7 @@ describe('Ebay Product Search', () => {
     await expect(searchInput).toHaveValue('telephones');
 
     await expect(browser).toHaveTitle('telephones | eBay');
-    
+
   });
 })
 
