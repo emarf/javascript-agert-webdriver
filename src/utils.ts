@@ -59,8 +59,8 @@ const getArtifactReferences = (references) => {
 }
 
 const getVideoAttachments = async (title, parent) => {
-  const roughlyFileName = `${parent.replaceAll(' ', '-')}--${title.replaceAll(' ', '-')}`;
-  const videosFolder = _joinPath(['../videos']);
+  const roughlyFileName = `${parent.replace(/ /g, '-')}--${title.replace(/ /g, '-')}`;
+  const videosFolder = _resolvePath(['videos']);
   let videoName;
 
   if (fs.existsSync(videosFolder)) {
@@ -70,7 +70,7 @@ const getVideoAttachments = async (title, parent) => {
       }
     });
 
-    const videoPath = _joinPath(['../videos', videoName]);
+    const videoPath = _resolvePath(['videos', videoName]);
     const formData = new FormData();
     const stream = fs.createReadStream(videoPath);
 
@@ -84,8 +84,8 @@ const getVideoAttachments = async (title, parent) => {
 }
 
 const getScreenshotAttachments = (title, parent) => {
-  const roughlyFileName = `${parent.replaceAll(' ', '-')}--${title.replaceAll(' ', '-')}`;
-  const folder = _joinPath(['../videos', 'rawSeleniumVideoGrabs']);
+  const roughlyFileName = `${parent.replace(/ /g, '-')}--${title.replace(/ /g, '-')}`;
+  const folder = _resolvePath(['videos', 'rawSeleniumVideoGrabs']);
   let screenshotFolder;
   const screenshots = [];
   if (fs.existsSync(folder)) {
@@ -95,8 +95,8 @@ const getScreenshotAttachments = (title, parent) => {
       }
     })
   
-    fs.readdirSync(_joinPath(['../videos', 'rawSeleniumVideoGrabs', screenshotFolder])).forEach((file) => {
-      const bufferImg = fs.readFileSync(_joinPath(['../videos', 'rawSeleniumVideoGrabs', screenshotFolder, file]));
+    fs.readdirSync(_resolvePath(['videos', 'rawSeleniumVideoGrabs', screenshotFolder])).forEach((file) => {
+      const bufferImg = fs.readFileSync(_resolvePath(['videos', 'rawSeleniumVideoGrabs', screenshotFolder, file]));
       screenshots.push(bufferImg);
     });
   
@@ -113,12 +113,11 @@ const getFileSizeInBytes = (filename) => {
   return fileSizeInBytes;
 }
 
-const _joinPath = (filePath) => {
-  const paths = [__dirname, ...filePath];
-  return path.join(...paths);
+const _resolvePath = (filePath) => {
+  const paths = [...filePath];
+  return path.resolve(...paths);
 }
 
-// !TODO work on tcm config
 const parseTcmRunOptions = (data) => {
   const tcmConfig = {
     xray: {
@@ -320,7 +319,7 @@ const parseLogs = (logs, level) => {
 }
 
 const deleteVideoFolder = () => {
-  const folderPath = path.join(__dirname, '../videos');
+  const folderPath = path.resolve('videos');
   console.log(fs.existsSync(folderPath));
   if (fs.existsSync(folderPath)) {
     fs.rmSync(folderPath, {recursive: true});

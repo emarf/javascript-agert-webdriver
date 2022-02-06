@@ -209,7 +209,7 @@ export default class ZebrunnerApiClient {
   async sendTestVideo(test) {
     const currentSession = this.sessionOptions.filter((item) => item.uid === test.uid);
     const { formData, videoPath } = await getVideoAttachments(test.title, test.parent);
-    if (formData) {
+    if (!formData) {
       return;
     }
     const url = urls.URL_SEND_SESSION_ARTIFACTS.replace('${testRunId}', this.runStats.runId).replace('${testSessionId}', currentSession[0].sessionId);
