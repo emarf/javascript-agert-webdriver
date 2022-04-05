@@ -38,7 +38,6 @@ export class ZebrunnerReporter extends WDIOReporter {
   constructor(reporterConfig) {
     super(reporterConfig);
     this.reporterConfig = parseWdioConfig(reporterConfig);
-    console.log('reporter', this.reporterConfig);
     this.zebrunnerApiClient = new ZebrunnerApiClient(this.reporterConfig);
     this.browserCapabilities;
     this.syncReporting = false;
@@ -134,7 +133,6 @@ export class ZebrunnerReporter extends WDIOReporter {
     try {
       await Promise.all(this.promiseFinish).then(async () => {
         let isReadyToFinish = true;
-
         await this.sendRunAttachments(this.runOptions);
 
         this.arrOfTestStats.forEach((test, index) => {
@@ -142,12 +140,13 @@ export class ZebrunnerReporter extends WDIOReporter {
           this.zebrunnerApiClient.sendScreenshots(test, this.allTests[index])
         });
 
-        const response = await this.zebrunnerApiClient.searchTests();
-        response.data.results.forEach((el) => {
-          if (el.status === 'IN_PROGRESS') {
-            isReadyToFinish = false;
-          };
-        });
+
+        // const response = await this.zebrunnerApiClient.searchTests();
+        // response.data.results.forEach((el) => {
+        //   if (el.status === 'IN_PROGRESS') {
+        //     isReadyToFinish = false;
+        //   };
+        // });
 
         this.revertTests.forEach((testId) => this.zebrunnerApiClient.revertTestRegistration(testId));
 

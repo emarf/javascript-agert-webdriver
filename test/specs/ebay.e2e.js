@@ -2,7 +2,6 @@
 const { reporterEmitter } = require('../../build/index');
 
 describe('Ebay Product Search', () => {
-  console.log(1)
   before(() => {
     const tcmRunOptions = [
       {
@@ -85,7 +84,7 @@ describe('Ebay Product Search', () => {
 
     await expect(searchInput).toHaveValue('laptop');
 
-    await expect(browser).toHaveTitle('laptop | eBay');
+    await expect(browser).toHaveTitle('laptop: Search Result | eBay');
   });
 
   it('should search telephones and verify title', async () => {
@@ -108,7 +107,7 @@ describe('Ebay Product Search', () => {
 
     await expect(searchInput).toHaveValue('telephones');
 
-    await expect(browser).toHaveTitle('telephones | eBay');
+    await expect(browser).toHaveTitle('telephones: Search Result | eBay');
 
   });
 })

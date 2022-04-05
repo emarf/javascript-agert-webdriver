@@ -217,7 +217,7 @@ export default class ZebrunnerApiClient {
     headers['Content-Type'] = formData.getHeaders()['content-type'];
     headers['x-zbr-video-content-length'] = getFileSizeInBytes(videoPath);
     const response = await this.httpClient.fetchRequest('POST', url, formData, headers);
-    if (response.status === 201) {
+    if (response.status === 200) {
       console.log(`Video send`);
     }
     return response;
@@ -254,7 +254,7 @@ export default class ZebrunnerApiClient {
   async sendTestArtifactReferences(testId, options) {
     const url = urls.URL_SEND_TEST_ARTIFACT_REFERENCES.replace('${testRunId}', this.runStats.runId).replace('${testId}', testId);
     if (options.references.length > 0) {
-      await this._referenceBody(url, options.references);
+      await this._referenceBody(url, options.references, testId);
     } else {
       console.log(`No ref for test ${testId}`);
     }
