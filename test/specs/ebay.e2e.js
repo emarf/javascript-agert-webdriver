@@ -75,7 +75,7 @@ describe('Ebay Product Search', () => {
 
     await browser.url(`https://www.ebay.com`);
 
-    await expect(browser).toHaveTitle('Electronics, Cars, Fashion, Collectibles & More | eBay');
+    await expect(browser).toHaveTitle('Электроника, автомобили, мода, коллекционирование, купоны и другие товары | eBay');
 
     const searchInput = $('#gh-ac');
     const searchBtn = $('#gh-btn');

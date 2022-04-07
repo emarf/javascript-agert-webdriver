@@ -1,3 +1,4 @@
+import {BrowserCapabilities, ReporterConfig, RunOptions, TestOptions} from './types/index';
 import HttpClient from './apiConstructor';
 import {
   getTestRunStart,
@@ -17,8 +18,9 @@ import {
   getScreenshotAttachments,
 } from './utils';
 import {commonHeaders, urls} from './constants';
+import {RunnerStats, TestStats} from '@wdio/reporter';
 export default class ZebrunnerApiClient {
-  private reporterConfig;
+  private reporterConfig: ReporterConfig;
   private httpClient;
   private accessToken;
   constructor(reporterConfig) {
@@ -50,12 +52,12 @@ export default class ZebrunnerApiClient {
     }
   }
 
-  async registerTestRunStart(suite) {
+  async registerTestRunStart(runStats: RunnerStats) {
     const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
     const project = this.reporterConfig.reportingProjectKey
       ? this.reporterConfig.reportingProjectKey
       : 'DEF';
-    const testRunStartBody = getTestRunStart(suite, this.reporterConfig);
+    const testRunStartBody = getTestRunStart(runStats, this.reporterConfig);
     try {
       const response = await this.httpClient.fetchRequest(
         'POST',
@@ -70,7 +72,7 @@ export default class ZebrunnerApiClient {
     }
   }
 
-  async registerTestRunFinish(runId, testStat) {
+  async registerTestRunFinish(runId: string, testStat: TestStats) {
     try {
       const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
       await this.httpClient.fetchRequest(
@@ -79,13 +81,13 @@ export default class ZebrunnerApiClient {
         getTestRunEnd(testStat),
         headers
       );
-      console.log(`Run with id ${runId} was finished!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`);
+      console.log(`Run with id ${runId} was finished`);
     } catch (e) {
       console.log(e);
     }
   }
 
-  async startTest(runId, testStat, maintainer) {
+  async startTest(runId: string, testStat: TestStats, maintainer: string) {
     try {
       const url = urls.URL_START_TEST.replace('${testRunId}', runId);
       const testStartBody = getTestStart(testStat, maintainer);
@@ -99,7 +101,7 @@ export default class ZebrunnerApiClient {
     }
   }
 
-  async finishTest(runId, testStat, testId) {
+  async finishTest(runId: string, testStat: TestStats, testId: string) {
     try {
       const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
       const testEnd = getTestEnd(testStat);
@@ -114,7 +116,12 @@ export default class ZebrunnerApiClient {
     }
   }
 
-  async startTestSession(runId, testStat, capabilities, testId) {
+  async startTestSession(
+    runId: string,
+    testStat: TestStats,
+    capabilities: BrowserCapabilities,
+    testId: string
+  ) {
     try {
       const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
       const testSession = getTestSessionStart(testStat, testId, capabilities);
@@ -130,7 +137,7 @@ export default class ZebrunnerApiClient {
     }
   }
 
-  async finishTestSession(runId, test, testId, sessionId) {
+  async finishTestSession(runId: string, test: TestStats, testId: string, sessionId: string) {
     try {
       const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
       const testSession = getTestSessionEnd(test, testId);
@@ -146,7 +153,7 @@ export default class ZebrunnerApiClient {
     }
   }
 
-  async sendLogs(runId, logs) {
+  async sendLogs(runId: string, logs: any[]) {
     try {
       const url = urls.URL_SEND_LOGS.replace('${testRunId}', runId);
       const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
@@ -160,7 +167,7 @@ export default class ZebrunnerApiClient {
     }
   }
 
-  async sendRunLabels(runId, options) {
+  async sendRunLabels(runId: string, options: RunOptions) {
     try {
       const url = urls.URL_SET_RUN_LABELS.replace('${testRunId}', runId);
       const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
@@ -177,7 +184,7 @@ export default class ZebrunnerApiClient {
     }
   }
 
-  async sendTestLabels(runId, testId, labels, tcmOptions) {
+  async sendTestLabels(runId: string, testId: string, labels, tcmOptions) {
     try {
       const url = urls.URL_SET_TEST_LABELS.replace('${testRunId}', runId).replace(
         '${testId}',
@@ -196,7 +203,7 @@ export default class ZebrunnerApiClient {
     }
   }
 
-  async sendScreenshots(runId, testStat, testId) {
+  async sendScreenshots(runId: string, testStat: TestStats, testId: string) {
     try {
       const url = urls.URL_SEND_SCREENSHOT.replace('${testRunId}', runId).replace(
         '${testId}',
@@ -225,7 +232,7 @@ export default class ZebrunnerApiClient {
     }
   }
 
-  async sendTestVideo(runId, testStat, sessionId) {
+  async sendTestVideo(runId: string, testStat: TestStats, sessionId: string) {
     const {formData, videoPath} = await getVideoAttachments(testStat.title, testStat.parent);
     if (!formData) {
       return;
@@ -236,7 +243,7 @@ export default class ZebrunnerApiClient {
     );
     let headers = await this.getHeadersWithAuth(commonHeaders.multipartDataHeaders);
     headers['Content-Type'] = formData.getHeaders()['content-type'];
-    headers['x-zbr-video-content-length'] = getFileSizeInBytes(videoPath);
+    // headers['x-zbr-video-content-length'] = getFileSizeInBytes(videoPath);
     const response = await this.httpClient.fetchRequest('POST', url, formData, headers);
     if (response.status === 200) {
       console.log(`Video send`);
@@ -244,7 +251,7 @@ export default class ZebrunnerApiClient {
     return response;
   }
 
-  async sendTestArtifacts(runId, testId, attachments) {
+  async sendTestArtifacts(runId: string, testId: string, attachments: TestOptions) {
     const url = urls.URL_SEND_TEST_ARTIFACTS.replace('${testRunId}', runId).replace(
       '${testId}',
       testId
@@ -256,7 +263,7 @@ export default class ZebrunnerApiClient {
     }
   }
 
-  async sendRunArtifacts(runId, attachments) {
+  async sendRunArtifacts(runId: string, attachments: TestOptions) {
     const url = urls.URL_SEND_RUN_ARTIFACTS.replace('${testRunId}', runId);
     if (attachments.length > 0) {
       await this._attachmentBody(runId, url, attachments);
@@ -265,7 +272,7 @@ export default class ZebrunnerApiClient {
     }
   }
 
-  async _attachmentBody(runId, url, attachments, testId = '') {
+  async _attachmentBody(runId: string, url: string, attachments, testId = '') {
     let headers = await this.getHeadersWithAuth(commonHeaders.multipartDataHeaders);
     const attachFiles = getTestArtifacts(attachments);
     attachFiles.forEach(async (el) => {
@@ -275,7 +282,7 @@ export default class ZebrunnerApiClient {
     });
   }
 
-  async sendTestArtifactReferences(runId, testId, references) {
+  async sendTestArtifactReferences(runId: string, testId: string, references) {
     const url = urls.URL_SEND_TEST_ARTIFACT_REFERENCES.replace('${testRunId}', runId).replace(
       '${testId}',
       testId
@@ -287,7 +294,7 @@ export default class ZebrunnerApiClient {
     }
   }
 
-  async sendRunArtifactReferences(runId, references) {
+  async sendRunArtifactReferences(runId: string, references) {
     const url = urls.URL_SEND_RUN_ARTIFACT_REFERENCES.replace('${testRunId}', runId);
     if (references.length > 0) {
       await this._referenceBody(runId, url, references);
@@ -296,14 +303,14 @@ export default class ZebrunnerApiClient {
     }
   }
 
-  async _referenceBody(runId, url, options, testId = '') {
+  async _referenceBody(runId: string, url: string, options, testId = '') {
     const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
     const attachLinks = getArtifactReferences(options);
     await this.httpClient.fetchRequest('PUT', url, attachLinks, headers);
     console.log(`References attach to ${testId ? `test ${testId}` : `run ${runId}`}`);
   }
 
-  async revertTestRegistration(runId, testId) {
+  async revertTestRegistration(runId: string, testId: string) {
     const headers = await this.getHeadersWithAuth(commonHeaders.jsonHeaders);
     const url = urls.URL_REVERT_TEST_REGISTRATION.replace('${testRunId}', runId).replace(
       '${testId}',

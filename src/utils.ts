@@ -1,20 +1,20 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import FormData from 'form-data';
-import { logLevels, testrailLabels, xrayLabels, zephyrLabels } from './constants';
+import {logLevels, testrailLabels, xrayLabels, zephyrLabels} from './constants';
 
 const getBrowserCapabilities = (suiteStats) => ({
-  "browserName": suiteStats.capabilities.browserName,
-  "browserVersion": suiteStats.capabilities.browserVersion,
-  "platformName": suiteStats.capabilities.platformName
-})
+  browserName: suiteStats.capabilities.browserName,
+  browserVersion: suiteStats.capabilities.browserVersion,
+  platformName: suiteStats.capabilities.platformName,
+});
 
 function logObject(obj) {
-  console.log(JSON.stringify(obj, null, 2))
+  console.log(JSON.stringify(obj, null, 2));
 }
 
 function getObjectAsString(obj) {
-  return JSON.stringify(obj, null, 2)
+  return JSON.stringify(obj, null, 2);
 }
 
 const parseDate = (date) => {
@@ -26,8 +26,8 @@ const parseDate = (date) => {
   const month = _addZero(parseDate.getMonth() + 1);
   const year = parseDate.getFullYear();
 
-  return `[${hours}:${minutes}:${seconds} ${year}-${month}-${day}]`
-}
+  return `[${hours}:${minutes}:${seconds} ${year}-${month}-${day}]`;
+};
 
 const _addZero = (value) => {
   return value < 10 ? `0${value}` : value;
@@ -46,17 +46,17 @@ const getTestArtifacts = (attach) => {
         formData.append('file', fs.createReadStream(filePath));
         arr.push(formData);
       }
-    })
+    });
     return arr;
   } else {
     return null;
   }
-}
+};
 
 const getArtifactReferences = (references) => {
-  const array = references.reduce((acc, el) => [...acc, { name: el[0], value: el[1] }], []);
-  return { items: array };
-}
+  const array = references.reduce((acc, el) => [...acc, {name: el[0], value: el[1]}], []);
+  return {items: array};
+};
 
 const getVideoAttachments = async (title, parent) => {
   const roughlyFileName = `${parent.replace(/ /g, '-')}--${title.replace(/ /g, '-')}`;
@@ -77,11 +77,11 @@ const getVideoAttachments = async (title, parent) => {
     stream.on('error', (err) => console.log(err));
     formData.append('video', stream);
 
-    return { formData, videoPath };
+    return {formData, videoPath};
   } else {
-    return { formData: null };
-  } 
-}
+    return {formData: null};
+  }
+};
 
 const getScreenshotAttachments = (title, parent) => {
   const roughlyFileName = `${parent.replace(/ /g, '-')}--${title.replace(/ /g, '-')}`;
@@ -93,99 +93,106 @@ const getScreenshotAttachments = (title, parent) => {
       if (file.includes(roughlyFileName)) {
         screenshotFolder = file;
       }
-    })
-  
-    fs.readdirSync(_resolvePath(['videos', 'rawSeleniumVideoGrabs', screenshotFolder])).forEach((file) => {
-      const bufferImg = fs.readFileSync(_resolvePath(['videos', 'rawSeleniumVideoGrabs', screenshotFolder, file]));
-      screenshots.push(bufferImg);
     });
-  
+
+    fs.readdirSync(_resolvePath(['videos', 'rawSeleniumVideoGrabs', screenshotFolder])).forEach(
+      (file) => {
+        const bufferImg = fs.readFileSync(
+          _resolvePath(['videos', 'rawSeleniumVideoGrabs', screenshotFolder, file])
+        );
+        screenshots.push(bufferImg);
+      }
+    );
+
     return screenshots;
   } else {
     return null;
   }
-}
+};
 
 const getFileSizeInBytes = (filename) => {
   const stats = fs.statSync(filename);
   const fileSizeInBytes = stats.size;
   console.log('size', fileSizeInBytes);
   return fileSizeInBytes;
-}
+};
 
 const _resolvePath = (filePath) => {
   const paths = [...filePath];
   return path.resolve(...paths);
-}
+};
 
 const parseTcmRunOptions = (data) => {
   const tcmConfig = {
-    xray: {
-      executionKey: {
-        key: xrayLabels.EXECUTION_KEY,
-        value: '',
-      },
-      disableSync: {
-        key: xrayLabels.SYNC_ENABLED,
-        value: true,
-      },
-      enableRealTimeSync: {
-        key: xrayLabels.SYNC_REAL_TIME,
-        value: false,
-      },
-    } || {},
-    testRail: {
-      suiteId: {
-        key: testrailLabels.SUITE_ID,
-        value: '',
-      },
-      runId: {
-        key: testrailLabels.RUN_ID,
-        value: '',
-      },
-      runName: {
-        key: testrailLabels.RUN_NAME,
-        value: '',
-      },
-      milestone:{
-        key: testrailLabels.MILESTONE,
-        value: '',
-      },
-      assignee:{
-        key: testrailLabels.ASSIGNEE,
-        value: '',
-      },     
-      enableSync: {
-        key: testrailLabels.SYNC_ENABLED,
-        value: true,
-      },
-      includeAllTestCasesInNewRun: {
-        key: testrailLabels.INCLUDE_ALL,
-        value: false,
-      },
-      enableRealTimeSync: {
-        key: testrailLabels.SYNC_REAL_TIME,
-        value: false,
-      },
-    } || {},
-    zephyr: {
-      testCycleKey: {
-        key: zephyrLabels.TEST_CYCLE_KEY,
-        value: '',
-      },
-      jiraProjectKey: {
-        key: zephyrLabels.JIRA_PROJECT_KEY,
-        value: '',
-      },
-      enableSync: {
-        key: zephyrLabels.SYNC_ENABLED,
-        value: true,
-      },
-      enableRealTimeSync: {
-        key: zephyrLabels.SYNC_REAL_TIME,
-        value: false,
-      },
-    } || {},
+    xray:
+      {
+        executionKey: {
+          key: xrayLabels.EXECUTION_KEY,
+          value: '',
+        },
+        disableSync: {
+          key: xrayLabels.SYNC_ENABLED,
+          value: true,
+        },
+        enableRealTimeSync: {
+          key: xrayLabels.SYNC_REAL_TIME,
+          value: false,
+        },
+      } || {},
+    testRail:
+      {
+        suiteId: {
+          key: testrailLabels.SUITE_ID,
+          value: '',
+        },
+        runId: {
+          key: testrailLabels.RUN_ID,
+          value: '',
+        },
+        runName: {
+          key: testrailLabels.RUN_NAME,
+          value: '',
+        },
+        milestone: {
+          key: testrailLabels.MILESTONE,
+          value: '',
+        },
+        assignee: {
+          key: testrailLabels.ASSIGNEE,
+          value: '',
+        },
+        enableSync: {
+          key: testrailLabels.SYNC_ENABLED,
+          value: true,
+        },
+        includeAllTestCasesInNewRun: {
+          key: testrailLabels.INCLUDE_ALL,
+          value: false,
+        },
+        enableRealTimeSync: {
+          key: testrailLabels.SYNC_REAL_TIME,
+          value: false,
+        },
+      } || {},
+    zephyr:
+      {
+        testCycleKey: {
+          key: zephyrLabels.TEST_CYCLE_KEY,
+          value: '',
+        },
+        jiraProjectKey: {
+          key: zephyrLabels.JIRA_PROJECT_KEY,
+          value: '',
+        },
+        enableSync: {
+          key: zephyrLabels.SYNC_ENABLED,
+          value: true,
+        },
+        enableRealTimeSync: {
+          key: zephyrLabels.SYNC_REAL_TIME,
+          value: false,
+        },
+      } || {},
   };
   data.forEach((obj) => {
     Object.keys(obj).forEach((key) => {
@@ -205,16 +212,16 @@ const parseTcmRunOptions = (data) => {
       if (key === 'testRailRunId') {
         tcmConfig.testRail.runId.value = obj[key];
       }
-      if(key === 'testRailRunName') {
+      if (key === 'testRailRunName') {
         tcmConfig.testRail.runName.value = obj[key];
       }
-      if(key === 'testRailMilestone') {
+      if (key === 'testRailMilestone') {
         tcmConfig.testRail.milestone.value = obj[key];
       }
-      if(key === 'testRailAssignee') {
+      if (key === 'testRailAssignee') {
         tcmConfig.testRail.runName.value = obj[key];
       }
-      if(key === 'testRailDisableSync') {
+      if (key === 'testRailDisableSync') {
         tcmConfig.testRail.enableSync.value = !JSON.parse(`${obj[key]}`);
       }
       if (key === 'testRailIncludeAll') {
@@ -237,16 +244,16 @@ const parseTcmRunOptions = (data) => {
       if (key === 'zephyrEnableRealTimeSync') {
         tcmConfig.zephyr.enableRealTimeSync.value = JSON.parse(`${obj[key]}`);
       }
-    })
-  })
+    });
+  });
 
   Object.keys(tcmConfig).forEach((item) => {
     Object.keys(tcmConfig[item]).forEach((key) => {
       if (tcmConfig[item][key].value === '') {
         delete tcmConfig[item][key];
       }
-    })
-  })
+    });
+  });
 
   if (!tcmConfig.xray?.executionKey?.value) {
     tcmConfig.xray = {};
@@ -258,7 +265,7 @@ const parseTcmRunOptions = (data) => {
     tcmConfig.zephyr = {};
   }
   return tcmConfig;
-}
+};
 
 const parseTcmTestOptions = (data, tcmConfig) => {
   const filterTcm = data.filter((el) => {
@@ -277,53 +284,55 @@ const parseTcmTestOptions = (data, tcmConfig) => {
         return !!el.zephyrTestCaseKey.length;
       }
     }
-  })
-  return filterTcm.map((option) => {
-    if (option.xrayTestKey) {
-      return option.xrayTestKey.map((value) => {
-        return {
-          key: xrayLabels.TEST_KEY,
-          value,
-        }
-      })
-    }
-    if (option.testRailCaseId) {
-      return option.testRailCaseId.map((value) => {
-        return {
-          key: testrailLabels.CASE_ID,
-          value,
-        }
-      })
-    }
-    if (option.zephyrTestCaseKey) {
-      return option.zephyrTestCaseKey.map((value) => {
-        return {
-          key: zephyrLabels.TEST_CASE_KEY,
-          value,
-        }
-      })
-    }
-  }).flat();
+  });
+  return filterTcm
+    .map((option) => {
+      if (option.xrayTestKey) {
+        return option.xrayTestKey.map((value) => {
+          return {
+            key: xrayLabels.TEST_KEY,
+            value,
+          };
+        });
+      }
+      if (option.testRailCaseId) {
+        return option.testRailCaseId.map((value) => {
+          return {
+            key: testrailLabels.CASE_ID,
+            value,
+          };
+        });
+      }
+      if (option.zephyrTestCaseKey) {
+        return option.zephyrTestCaseKey.map((value) => {
+          return {
+            key: zephyrLabels.TEST_CASE_KEY,
+            value,
+          };
+        });
+      }
+    })
+    .flat();
 };
 
 const parseLabels = (labels) => {
   const arr = [];
   Object.keys(labels).forEach((key) => {
     arr.push({key: key, value: labels[key]});
-  })
+  });
   return arr;
-}
+};
 
 const parseLogs = (logs, level) => {
-  return logs.map((el) => ({message: el, level: logLevels[level], timestamp: Date.now()}))
-}
+  return logs.map((el) => ({message: el, level: logLevels[level], timestamp: Date.now()}));
+};
 
 const deleteVideoFolder = () => {
   const folderPath = path.resolve('videos');
   if (fs.existsSync(folderPath)) {
     fs.rmSync(folderPath, {recursive: true});
   }
-}
+};
 
 const parseWdioConfig = (config) => {
   const wdioConfig = {
@@ -343,35 +352,25 @@ const parseWdioConfig = (config) => {
     reportingMilestoneName: process.env.REPORTING_MILESTONE_NAME,
     reportingRunLocale: process.env.REPORTING_RUN_LOCALE,
   };
-  
 
   Object.keys(config).forEach((key) => {
     if (key === 'enabled') {
       wdioConfig.enabled = _getConfigVar('ENABLED', config[key]);
     }
     if (key === 'reportingServerHostname') {
-      wdioConfig.reportingServerHostname = _getConfigVar(
-        'REPORTING_SERVER_HOSTNAME',
-        config[key]
-      );
+      wdioConfig.reportingServerHostname = _getConfigVar('REPORTING_SERVER_HOSTNAME', config[key]);
     }
     if (key === 'reportingProjectKey') {
       wdioConfig.reportingProjectKey = _getConfigVar('REPORTING_PROJECT_KEY', config[key]);
     }
     if (key === 'reportingRunDisplayName') {
-      wdioConfig.reportingRunDisplayName = _getConfigVar(
-        'REPORTING_RUN_DISPLAY_NAME',
-        config[key]
-      );
+      wdioConfig.reportingRunDisplayName = _getConfigVar('REPORTING_RUN_DISPLAY_NAME', config[key]);
     }
     if (key === 'reportingRunBuild') {
       wdioConfig.reportingRunBuild = _getConfigVar('REPORTING_RUN_BUILD', config[key]);
     }
     if (key === 'reportingRunEnvironment') {
-      wdioConfig.reportingRunEnvironment = _getConfigVar(
-        'REPORTING_RUN_ENVIRONMENT',
-        config[key]
-      );
+      wdioConfig.reportingRunEnvironment = _getConfigVar('REPORTING_RUN_ENVIRONMENT', config[key]);
     }
     if (key === 'reportingNotifyOnEachFailure') {
       wdioConfig.reportingNotifyOnEachFailure = _getConfigVar(
@@ -401,16 +400,10 @@ const parseWdioConfig = (config) => {
       wdioConfig.reportingMilestoneId = _getConfigVar('REPORTING_MILESTONE_ID', config[key]);
     }
     if (key === 'reportingMilestoneName') {
-      wdioConfig.reportingMilestoneName = _getConfigVar(
-        'REPORTING_MILESTONE_NAME',
-        config[key]
-      );
+      wdioConfig.reportingMilestoneName = _getConfigVar('REPORTING_MILESTONE_NAME', config[key]);
     }
     if (key === 'reportingRunLocale') {
-      wdioConfig.reportingRunLocale = _getConfigVar(
-        'REPORTING_RUN_LOCALE',
-        config[key]
-      );
+      wdioConfig.reportingRunLocale = _getConfigVar('REPORTING_RUN_LOCALE', config[key]);
     }
   });
 
@@ -424,9 +417,9 @@ const parseWdioConfig = (config) => {
 };
 
 const _getConfigVar = (envVarName, configVar) => {
-  if (process.env[envVarName]) {
+  if (!!process.env[envVarName]) {
     return process.env[envVarName];
-  } else if (configVar) {
+  } else if (configVar || configVar === false) {
     return configVar;
   } else {
     return undefined;
@@ -449,4 +442,4 @@ export {
   parseLogs,
   deleteVideoFolder,
   parseWdioConfig,
-}
+};

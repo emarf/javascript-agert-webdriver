@@ -1,12 +1,14 @@
+import {BrowserCapabilities, ReporterConfig, RunOptions} from './types/index';
+import {RunnerStats, SuiteStats, TestStats} from '@wdio/reporter';
 import {v4 as uuidv4} from 'uuid';
 
-const getRefreshToken = (token) => {
+const getRefreshToken = (token: string) => {
   return {
     refreshToken: token,
   };
 };
 
-const getTestRunStart = (suite, reporterConfig) => {
+const getTestRunStart = (suite: RunnerStats, reporterConfig: ReporterConfig) => {
   let testRunStartBody = {
     uuid: uuidv4(),
     name: reporterConfig.reportingRunDisplayName
@@ -53,13 +55,13 @@ const getTestRunStart = (suite, reporterConfig) => {
   return testRunStartBody;
 };
 
-const getTestRunEnd = (test) => {
+const getTestRunEnd = (test: TestStats) => {
   return {
     endedAt: test.end,
   };
 };
 
-const getTestStart = (test, maintainer) => {
+const getTestStart = (test: TestStats, maintainer) => {
   let testStartBody = {
     name: test.title,
     startedAt: test.start,
@@ -71,14 +73,18 @@ const getTestStart = (test, maintainer) => {
   return testStartBody;
 };
 
-const getTestEnd = (test) => {
+const getTestEnd = (test: TestStats) => {
   return {
     endedAt: test.end,
     result: test.state.toUpperCase(),
   };
 };
 
-const getTestSessionStart = (testStats, testId, capabilities) => {
+const getTestSessionStart = (
+  testStats: TestStats,
+  testId: string,
+  capabilities: BrowserCapabilities
+) => {
   return {
     sessionId: uuidv4(),
     initiatedAt: testStats.start,
@@ -89,14 +95,14 @@ const getTestSessionStart = (testStats, testId, capabilities) => {
   };
 };
 
-const getTestSessionEnd = (testStats, testId) => {
+const getTestSessionEnd = (testStats: TestStats, testId: string) => {
   return {
     endedAt: testStats.end,
     testIds: [testId],
   };
 };
 
-const getTestRunLabels = (reporterOptions, options) => {
+const getTestRunLabels = (reporterOptions: ReporterConfig, options: RunOptions) => {
   const testRunLabelsBody = {
     items: [],
   };

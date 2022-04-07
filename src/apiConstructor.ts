@@ -13,7 +13,7 @@ export default class HttpClient {
     });
   }
 
-  async fetchRequest(method, url, body, headers) {
+  async fetchRequest(method: string, url: string, body: any, headers: string) {
     try {
       const config = {
         headers: headers,

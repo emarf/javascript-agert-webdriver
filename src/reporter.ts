@@ -1,4 +1,4 @@
-import WDIOReporter, {RunnerStats, SuiteStats, TestStats} from '@wdio/reporter';
+import WDIOReporter, {RunnerStats, TestStats} from '@wdio/reporter';
 import ZebrunnerApiClient from './zebr-api-client';
 import {
   parseDate,
@@ -10,49 +10,22 @@ import {
   parseWdioConfig,
 } from './utils';
 import {emitterCommands} from './constants';
-
-export type ReporterConfig = {
-  enabled: boolean;
-  reportingServerHostname: string;
-  reportingProjectKey: string;
-  reportingRunDisplayName: string;
-  reportingRunBuild: string;
-  reportingRunEnvironment: string;
-  reportingNotifyOnEachFailure: boolean;
-  reportingNotificationSlackChannels: string;
-  reportingNotificationMsTeamsChannels: string;
-  reportingNotificationEmails: string;
-  reportingMilestoneId: string;
-  reportingMilestoneName: string;
-  reportingRunLocale: string;
-};
-
-// export type TestOptions = {
-//   maintainer: '';
-//   testTcmOptions: [];
-//   labels: [];
-//   attachments: [];
-//   references: [];
-//   logs: [];
-// };
-
+import {BrowserCapabilities, ReporterConfig, RunOptions, TestOptions} from './types';
 export class ZebrunnerReporter extends WDIOReporter {
   private reporterConfig: ReporterConfig;
   private zebrunnerApiClient;
-  private browserCapabilities;
-  private syncReporting;
-  private runId;
-  private runOptions;
+  private browserCapabilities: BrowserCapabilities;
+  private syncReporting: boolean;
+  private runOptions: RunOptions;
   private testStats: TestStats[];
   private testUid: string;
-  private currentTestOptions;
+  private currentTestOptions: TestOptions;
   constructor(reporterConfig) {
     super(reporterConfig);
     this.reporterConfig = parseWdioConfig(reporterConfig);
     this.zebrunnerApiClient = new ZebrunnerApiClient(this.reporterConfig);
     this.browserCapabilities;
     this.syncReporting = false;
-    this.runId;
     this.runOptions = {
       tcmConfig: {},
       labels: [],
@@ -89,12 +62,7 @@ export class ZebrunnerReporter extends WDIOReporter {
   onRunnerStart(runStats: RunnerStats) {
     console.log('onRunnerStart');
     deleteVideoFolder();
-    // console.log(`${runStats.cid}`, runStats.capabilities);
     this.browserCapabilities = getBrowserCapabilities(runStats);
-  }
-
-  onSuiteStart(suiteStats: SuiteStats) {
-    console.log('onSuiteStart');
   }
 
   onTestStart(testStats: TestStats) {
@@ -115,6 +83,9 @@ export class ZebrunnerReporter extends WDIOReporter {
   async onRunnerEnd(runStats: RunnerStats) {
     console.log('onRunnerEnd');
     try {
+      if (!this.reporterConfig.enabled) {
+        return;
+      }
       const runId = await this.zebrunnerApiClient.registerTestRunStart(runStats);
       const arrayOfPromises = this.testStats.map(async (testStat: TestStats) => {
         const testOptions = this.currentTestOptions[testStat.uid];

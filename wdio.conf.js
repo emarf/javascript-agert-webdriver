@@ -139,7 +139,7 @@ exports.config = {
       enabled: true,
       reportingServerHostname: 'https://webdriver.zebrunner.com',
       reportingProjectKey: 'DEF',
-      reportingRunDisplayName: 'PW-tests',
+      reportingRunDisplayName: 'WDIO-tests',
       reportingRunBuild: 'alpha-1',
       reportingRunEnvironment: 'STAGE',
       reportingNotificationNotifyOnEachFailure: true,
