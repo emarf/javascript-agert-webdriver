@@ -28,9 +28,6 @@ export const reporterEmitter = {
   attachReferenceToTest: (references) => {
     (process.emit as Function)(emitterCommands.ATTACH_REF_TO_TEST, references);
   },
-  // setTestLogs: (logs, level = 'info') => {
-  //   process.emit(emitterCommands.SET_TEST_LOGS, logs, level)
-  // },
   revertTestRegistration: () => {
     (process.emit as Function)(emitterCommands.REVERT_TEST_REGISTRATION);
   },

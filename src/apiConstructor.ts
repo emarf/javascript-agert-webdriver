@@ -17,7 +17,7 @@ export default class HttpClient {
     try {
       const config = {
         headers: headers,
-      }
+      };
 
       let response;
 
@@ -35,7 +35,7 @@ export default class HttpClient {
 
       return response;
     } catch (error) {
-      this._errorLog(error, url);
+      this._errorLog(error);
     }
   }
 
@@ -43,19 +43,14 @@ export default class HttpClient {
     console.log(`POST relative url: ${url} with status: ${promise.status}`);
   }
 
-  _errorLog(error, url) {
-    console.log('error url', url)
+  _errorLog(error) {
     if (error.response) {
-      console.log(1)
       console.error(`RESPONSE ERROR: ${error.response.status} ${error.response.statusText}`);
       console.log(error.response.data);
     } else if (error.data) {
-      console.log(2)
-      console.error((error.data) ? error.data : error.response.data);
-      console.log(error.response)
+      console.error(error.data ? error.data : error.response.data);
     } else {
-      console.log(3);
       console.error(error);
     }
   }
-};
+}

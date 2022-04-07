@@ -61,7 +61,7 @@ describe('Webdriverio main page', () => {
       ['test ref', 'https://github.com'],
       ['test ref2', 'https://youtube.com']
     ])
-    
+
     await browser.url(`https://webdriver.io`);
     await expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO');
   });

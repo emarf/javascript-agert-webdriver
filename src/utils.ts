@@ -35,7 +35,7 @@ const _addZero = (value) => {
 
 const getTestArtifacts = (attach) => {
   const arr = [];
-  const dir = path.join(__dirname, '../artifacts');
+  const dir = path.resolve('artifacts');
   if (fs.existsSync(dir)) {
     const files = fs.readdirSync(dir);
 
@@ -320,7 +320,6 @@ const parseLogs = (logs, level) => {
 
 const deleteVideoFolder = () => {
   const folderPath = path.resolve('videos');
-  console.log(fs.existsSync(folderPath));
   if (fs.existsSync(folderPath)) {
     fs.rmSync(folderPath, {recursive: true});
   }

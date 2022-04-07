@@ -1,20 +1,24 @@
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 const getRefreshToken = (token) => {
   return {
-    refreshToken: token
+    refreshToken: token,
   };
 };
 
 const getTestRunStart = (suite, reporterConfig) => {
   let testRunStartBody = {
     uuid: uuidv4(),
-    name: reporterConfig.reportingRunDisplayName ? reporterConfig.reportingRunDisplayName : 'Default suite',
+    name: reporterConfig.reportingRunDisplayName
+      ? reporterConfig.reportingRunDisplayName
+      : 'Default suite',
     startedAt: suite.start,
     framework: 'wdio',
     config: {
-      environment: reporterConfig.reportingRunEnvironment ? reporterConfig.reportingRunEnvironment : '-',
-      build: reporterConfig.reportingRunBuild ? reporterConfig.reportingRunBuild : ''
+      environment: reporterConfig.reportingRunEnvironment
+        ? reporterConfig.reportingRunEnvironment
+        : '-',
+      build: reporterConfig.reportingRunBuild ? reporterConfig.reportingRunBuild : '',
     },
     milestone: {
       id: reporterConfig.reportingMilestoneId ? reporterConfig.reportingMilestoneId : null,
@@ -23,36 +27,45 @@ const getTestRunStart = (suite, reporterConfig) => {
     notifications: {
       notifyOnEachFailure: reporterConfig.reportingNotifyOnEachFailure,
       targets: [],
-    }
+    },
   };
 
   Object.keys(reporterConfig).forEach((key) => {
     if (key === 'reportingNotificationSlackChannels') {
-      testRunStartBody.notifications.targets.push({type: 'SLACK_CHANNELS', value: reporterConfig[key]})
+      testRunStartBody.notifications.targets.push({
+        type: 'SLACK_CHANNELS',
+        value: reporterConfig[key],
+      });
     }
     if (key === 'reportingNotificationMsTeamsChannels') {
-      testRunStartBody.notifications.targets.push({type: 'MS_TEAMS_CHANNELS', value: reporterConfig[key]})
+      testRunStartBody.notifications.targets.push({
+        type: 'MS_TEAMS_CHANNELS',
+        value: reporterConfig[key],
+      });
     }
     if (key === 'reportingNotificationEmails') {
-      testRunStartBody.notifications.targets.push({type: 'EMAIL_RECIPIENTS', value: reporterConfig[key]})
+      testRunStartBody.notifications.targets.push({
+        type: 'EMAIL_RECIPIENTS',
+        value: reporterConfig[key],
+      });
     }
-  })
+  });
   return testRunStartBody;
 };
 
 const getTestRunEnd = (test) => {
   return {
-    'endedAt': test.end,
+    endedAt: test.end,
   };
 };
 
 const getTestStart = (test, maintainer) => {
   let testStartBody = {
-    'name': test.title,
-    'startedAt': test.start,
-    'className': test.fullTitle,
-    'maintainer': maintainer ? maintainer : 'anonymous',
-    'methodName': test.title,
+    name: test.title,
+    startedAt: test.start,
+    className: test.fullTitle,
+    maintainer: maintainer ? maintainer : 'anonymous',
+    methodName: test.title,
   };
 
   return testStartBody;
@@ -60,83 +73,78 @@ const getTestStart = (test, maintainer) => {
 
 const getTestEnd = (test) => {
   return {
-    'endedAt': test.end,
-    'result': test.state.toUpperCase(),
+    endedAt: test.end,
+    result: test.state.toUpperCase(),
   };
 };
 
 const getTestSessionStart = (testStats, testId, capabilities) => {
   return {
-    'sessionId': uuidv4(),
-    'initiatedAt': testStats.start,
-    'startedAt': testStats.start,
-    'capabilities': capabilities ? capabilities : 'n/a',
-    'desiredCapabilities': capabilities ? capabilities : 'n/a',
-    'testIds': [testId]
+    sessionId: uuidv4(),
+    initiatedAt: testStats.start,
+    startedAt: testStats.start,
+    capabilities: capabilities ? capabilities : 'n/a',
+    desiredCapabilities: capabilities ? capabilities : 'n/a',
+    testIds: [testId],
   };
 };
 
 const getTestSessionEnd = (testStats, testId) => {
   return {
-    'endedAt': testStats.end,
-    'testIds': [testId]
+    endedAt: testStats.end,
+    testIds: [testId],
   };
 };
 
 const getTestRunLabels = (reporterOptions, options) => {
   const testRunLabelsBody = {
-    items: []
+    items: [],
   };
 
   if (reporterOptions.reportingRunLocale) {
-    testRunLabelsBody.items.push({ 'key': 'com.zebrunner.app/sut.locale', 'value': reporterOptions.reportingRunLocale })
+    testRunLabelsBody.items.push({
+      key: 'com.zebrunner.app/sut.locale',
+      value: reporterOptions.reportingRunLocale,
+    });
   }
 
   if (options.tcmConfig) {
     Object.keys(options.tcmConfig).forEach((el) => {
-      ;
       Object.keys(options.tcmConfig[el]).forEach((key) => {
-        testRunLabelsBody.items.push(options.tcmConfig[el][key])
-      })
-    })
+        testRunLabelsBody.items.push(options.tcmConfig[el][key]);
+      });
+    });
   }
 
   if (options.labels.length > 0) {
     const labels = options.labels.flat();
     labels.forEach((el) => {
       testRunLabelsBody.items.push(el);
-    })
+    });
   }
 
   return testRunLabelsBody;
 };
 
-const getTestLabels = (options) => {
+const getTestLabels = (labels, tcmOptions) => {
   const obj = {
     items: [],
+  };
+
+  if (tcmOptions && tcmOptions.length > 0) {
+    tcmOptions.forEach((tcmOption) => {
+      obj.items.push(tcmOption);
+    });
   }
 
-  if (options.testTcmOptions.length > 0) {
-    options.testTcmOptions.forEach((tcmOptions) => {
-      obj.items.push(tcmOptions);
-    })
-  }
-
-  if (options.labels.length > 0) {
-    const labels = options.labels.flat();
-    labels.forEach((tcmOptions) => {
-      obj.items.push(tcmOptions);
-    })
+  if (labels && labels.length > 0) {
+    const flatLabels = labels.flat();
+    flatLabels.forEach((label) => {
+      obj.items.push(label);
+    });
   }
 
   return obj;
-}
-const getTestsSearch = (testRunId) => {
-  return {
-    'page': 1,
-    'pageSize': 100000,
-    'testRunId': testRunId
-  }
 };
 
 export {
@@ -149,5 +157,4 @@ export {
   getTestSessionEnd,
   getTestRunLabels,
   getTestLabels,
-  getTestsSearch,
-}
+};

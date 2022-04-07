@@ -10,7 +10,6 @@ const urls = {
   URL_SET_TEST_LABELS: '/api/reporting/v1/test-runs/${testRunId}/tests/${testId}/labels',
   URL_START_SESSION: '/api/reporting/v1/test-runs/${testRunId}/test-sessions',
   URL_UPDATE_SESSION: '/api/reporting/v1/test-runs/${testRunId}/test-sessions/${testSessionId}',
-  URL_SEARCH_TESTS: '/api/reporting/api/tests/search',
   URL_SEND_RUN_ARTIFACTS: '/api/reporting/v1/test-runs/${testRunId}/artifacts',
   URL_SEND_TEST_ARTIFACTS: '/api/reporting/v1/test-runs/${testRunId}/tests/${testId}/artifacts',
   URL_SEND_RUN_ARTIFACT_REFERENCES: '/api/reporting/v1/test-runs/${testRunId}/artifact-references',
